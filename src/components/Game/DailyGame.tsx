@@ -27,6 +27,8 @@ const KEYBOARD_ROWS = [
   ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE"],
 ];
 
+const DEFAULT_STATUS: LetterStatus = "default";
+
 const STATUS_PRIORITY: Record<LetterStatus, number> = {
   default: 0,
   absent: 1,
@@ -52,7 +54,7 @@ const createEmptyGrid = (): CellState[][] =>
   Array.from({ length: ROWS }, () =>
     Array.from({ length: COLUMNS }, () => ({
       value: "",
-      status: "default" as LetterStatus,
+      status: DEFAULT_STATUS,
     })),
   );
 
@@ -213,10 +215,11 @@ const DailyGame = () => {
           return row;
         }
 
-        return row.map((cell, columnIndex) =>
-          columnIndex === insertionColumn
-            ? { ...cell, value: upperLetter, status: "default" }
-            : cell,
+        return row.map(
+          (cell, columnIndex): CellState =>
+            columnIndex === insertionColumn
+              ? { ...cell, value: upperLetter, status: DEFAULT_STATUS }
+              : cell,
         );
       });
 
@@ -249,10 +252,11 @@ const DailyGame = () => {
     setGrid((previous) => {
       const next = previous.map((row, rowIndex) =>
         rowIndex === currentRow
-          ? row.map((cell, columnIndex) =>
-              columnIndex === deleteIndex
-                ? { ...cell, value: "", status: "default" }
-                : cell,
+          ? row.map(
+              (cell, columnIndex): CellState =>
+                columnIndex === deleteIndex
+                  ? { ...cell, value: "", status: DEFAULT_STATUS }
+                  : cell,
             )
           : row,
       );
@@ -277,7 +281,7 @@ const DailyGame = () => {
           return row;
         }
 
-        return row.map((cell, columnIndex) => {
+        return row.map((cell, columnIndex): CellState => {
           const letterData = attempt.letters[columnIndex];
           if (!letterData) {
             return cell;
@@ -285,7 +289,7 @@ const DailyGame = () => {
 
           return {
             value: letterData.letter.toUpperCase(),
-            status: letterData.state,
+            status: letterData.state as LetterStatus,
           };
         });
       }),

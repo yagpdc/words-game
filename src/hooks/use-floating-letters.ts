@@ -33,6 +33,7 @@ const CARD_EXCLUSION_PADDING = 20;
 const MIN_DISTANCE_BETWEEN_LETTERS = 180;
 const MIN_DISTANCE_SQUARED =
   MIN_DISTANCE_BETWEEN_LETTERS * MIN_DISTANCE_BETWEEN_LETTERS;
+const SIDES: Side[] = ["top", "right", "bottom", "left"];
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -123,9 +124,8 @@ const findPlacement = (
   relativeCard: RelativeCardRect,
   existingLetters: ActiveLetter[],
 ) => {
-  const sides: Side[] = ["top", "right", "bottom", "left"].sort(
-    () => Math.random() - 0.5,
-  );
+  const sides = [...SIDES];
+  sides.sort(() => Math.random() - 0.5);
 
   for (const side of sides) {
     const candidate = pickPositionForSide(side, sectionRect, relativeCard);

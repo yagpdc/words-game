@@ -19,6 +19,8 @@ const KEYBOARD_ROWS = [
   ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE"],
 ];
 
+const DEFAULT_STATUS: LetterStatus = "default";
+
 const STATUS_PRIORITY: Record<LetterStatus, number> = {
   default: 0,
   absent: 1,
@@ -44,7 +46,7 @@ const createEmptyGrid = (): CellState[][] =>
   Array.from({ length: ROWS }, () =>
     Array.from({ length: COLUMNS }, () => ({
       value: "",
-      status: "default" as LetterStatus,
+      status: DEFAULT_STATUS,
     })),
   );
 
@@ -56,7 +58,7 @@ const getFirstEmptyColumn = (row: CellState[]) => {
 const InfinityGame = () => {
   const [grid, setGrid] = useState<CellState[][]>(() => createEmptyGrid());
   const [currentRow, setCurrentRow] = useState(0);
-  const [currentCol, setCurrentCol] = useState(0);
+  const [, setCurrentCol] = useState(0);
   const [selectedCol, setSelectedCol] = useState(0);
   const [keyboardState, setKeyboardState] = useState<
     Record<string, LetterStatus>
@@ -110,10 +112,15 @@ const InfinityGame = () => {
         if (rowIndex !== currentRow) {
           return row;
         }
-        return row.map((cell, columnIndex) =>
-          columnIndex === insertionColumn
-            ? { ...cell, value: upperLetter, status: "default" }
-            : cell,
+        return row.map(
+          (cell, columnIndex): CellState =>
+            columnIndex === insertionColumn
+              ? {
+                  ...cell,
+                  value: upperLetter,
+                  status: DEFAULT_STATUS,
+                }
+              : cell,
         );
       });
 
@@ -145,7 +152,7 @@ const InfinityGame = () => {
         rowIndex === currentRow
           ? row.map((cell, columnIndex) =>
               columnIndex === deleteIndex
-                ? { ...cell, value: "", status: "default" }
+                ? { ...cell, value: "", status: DEFAULT_STATUS }
                 : cell,
             )
           : row,
@@ -165,7 +172,10 @@ const InfinityGame = () => {
       letterCounts[letter] = (letterCounts[letter] ?? 0) + 1;
     }
 
-    const statuses: LetterStatus[] = Array(COLUMNS).fill("absent");
+    const statuses: LetterStatus[] = Array.from(
+      { length: COLUMNS },
+      () => "absent" as LetterStatus,
+    );
 
     for (let index = 0; index < COLUMNS; index += 1) {
       const guessChar = guessLower[index];
@@ -192,10 +202,12 @@ const InfinityGame = () => {
     setGrid((previous) =>
       previous.map((row, rowIndex) =>
         rowIndex === currentRow
-          ? row.map((cell, columnIndex) => ({
-              ...cell,
-              status: statuses[columnIndex],
-            }))
+          ? row.map(
+              (cell, columnIndex): CellState => ({
+                ...cell,
+                status: statuses[columnIndex],
+              }),
+            )
           : row,
       ),
     );
