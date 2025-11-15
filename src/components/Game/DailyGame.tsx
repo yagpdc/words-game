@@ -63,6 +63,15 @@ const getFirstEmptyColumn = (row: CellState[]) => {
   return index === -1 ? COLUMNS : index;
 };
 
+const getNextEmptyAfter = (row: CellState[], fromIndex: number) => {
+  for (let column = fromIndex + 1; column < COLUMNS; column += 1) {
+    if (!row[column].value) {
+      return column;
+    }
+  }
+  return null;
+};
+
 const DailyGame = () => {
   const { updateUser } = useAuth();
 
@@ -198,13 +207,9 @@ const DailyGame = () => {
       return;
     }
 
-    const activeRow = grid[currentRow];
-    const firstEmpty = getFirstEmptyColumn(activeRow);
-    const isRowFull = firstEmpty === COLUMNS;
-    const insertionColumn =
-      isRowFull || selectedCol < firstEmpty ? selectedCol : firstEmpty;
+    const insertionColumn = Math.min(Math.max(selectedCol, 0), COLUMNS - 1);
 
-    if (insertionColumn >= COLUMNS) {
+    if (insertionColumn < 0 || insertionColumn >= COLUMNS) {
       setFeedback("Linha completa, envie ou apague uma letra.");
       return;
     }
@@ -224,10 +229,8 @@ const DailyGame = () => {
       });
 
       const updatedRow = next[currentRow];
-      const nextEmpty = getFirstEmptyColumn(updatedRow);
-      const nextSelected =
-        nextEmpty >= COLUMNS ? Math.max(COLUMNS - 1, 0) : nextEmpty;
-      setSelectedCol(nextSelected);
+      const nextEmpty = getNextEmptyAfter(updatedRow, insertionColumn);
+      setSelectedCol(nextEmpty !== null ? nextEmpty : insertionColumn);
 
       return next;
     });
@@ -496,7 +499,7 @@ const DailyGame = () => {
                   key={key}
                   type="button"
                   disabled={isDisabled}
-                  className={`min-w-12 rounded-md px-3 py-2 text-sm font-semibold transition focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`min-w-12 rounded-md px-3 py-2 text-sm cursor-pointer font-semibold transition focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 ${
                     isAction ? "text-xs uppercase" : ""
                   } ${KEYBOARD_STYLES[status]}`}
                   onClick={() => handleKeyPress(upperKey)}

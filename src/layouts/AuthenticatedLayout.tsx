@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth/use-auth.hook";
 import type { ReactNode } from "react";
+import { AiOutlineFire } from "react-icons/ai";
 
 type AuthenticatedLayoutProps = {
   children: ReactNode;
@@ -53,7 +54,9 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
             </p>
             <p className="text-lg font-semibold">{user?.name ?? "Convidado"}</p>
           </div>
+        </div>
 
+        <nav className="flex items-center gap-3">
           <div className=" flex items-center gap-2 px-3 ">
             <p className="text-[11px] uppercase tracking-wide text-neutral-500">
               Pontuação
@@ -61,14 +64,11 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
             <p className="text-base font-semibold">{user?.score ?? 0}</p>
           </div>
           <div className=" flex items-center gap-2 px-3 py-1.5">
-            <p className="text-[11px] uppercase tracking-wide text-neutral-500">
-              Streak
+            <p className="text-[20px] uppercase tracking-wide text-orange-500">
+              <AiOutlineFire />
             </p>
             <p className="text-base font-semibold">{user?.streak ?? 0}</p>
           </div>
-        </div>
-
-        <nav className="flex items-center gap-3">
           <button
             type="button"
             onClick={handleNavigate}
