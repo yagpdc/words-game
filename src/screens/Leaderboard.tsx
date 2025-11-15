@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth/use-auth.hook";
 import { useWordsRankingQuery } from "../hooks/words/use-words-ranking";
+import { FaCrown } from "react-icons/fa";
 
 const Leaderboard = () => {
   const { user, logout } = useAuth();
@@ -65,10 +66,10 @@ const Leaderboard = () => {
   return (
     <section className="flex w-full max-w-4xl flex-col items-center gap-6 text-white">
       <header className="text-center">
-        <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">
+        <p className="text-xs uppercase tracking-[0.35em] text-neutral-500 mb-4">
           Words · Daily
         </p>
-        <h1 className="text-3xl font-semibold">Ranking diário</h1>
+        <h1 className="text-3xl font-semibold">Ranking</h1>
       </header>
 
       <div className="w-full overflow-hidden rounded-lg border border-neutral-800 bg-[#1b171f]">
@@ -95,7 +96,10 @@ const Leaderboard = () => {
                   }`}
                 >
                   <td className="px-5 py-2">
-                    <span className="truncate">
+                    <span className="flex items-center gap-2 truncate">
+                      {index === 0 ? (
+                        <FaCrown className="text-yellow-500" />
+                      ) : null}
                       {item.name}
                       {isCurrent ? (
                         <span className="ml-2 rounded bg-amber-500/10 px-2 py-px text-[10px] font-semibold uppercase text-amber-300">

@@ -21,12 +21,55 @@ body {
   min-height: 100vh;
   background-color: #1f1f1f;
   color: rgba(255, 255, 255, 0.87);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
-  height: 100vh;
+}
+
+@keyframes word-row-shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  75% {
+    transform: translateX(-3px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.shake-row {
+  animation: word-row-shake 0.4s ease;
+}
+
+@keyframes cell-highlight-pulse {
+  0% {
+    border-color: #facc15;
+    box-shadow: 0 0 0 rgba(250, 204, 21, 0.4);
+  }
+  50% {
+    border-color: #facc15;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+  }
+  100% {
+    border-color: #facc15;
+    box-shadow: 0 0 0 rgba(250, 204, 21, 0.4);
+  }
+}
+
+.cell-highlight {
+  border-width: 2px !important;
+  border-color: #facc15 !important;
+  animation: cell-highlight-pulse 0.6s ease;
 }
 
 a {

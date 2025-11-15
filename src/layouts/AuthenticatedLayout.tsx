@@ -57,12 +57,6 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
         </div>
 
         <nav className="flex items-center gap-3">
-          <div className=" flex items-center gap-2 px-3 ">
-            <p className="text-[11px] uppercase tracking-wide text-neutral-500">
-              Pontuação
-            </p>
-            <p className="text-base font-semibold">{user?.score ?? 0}</p>
-          </div>
           <div className=" flex items-center gap-2 px-3 py-1.5">
             <p className="text-[20px] uppercase tracking-wide text-orange-500">
               <AiOutlineFire />
@@ -76,7 +70,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
           >
             {atProfile ? "Jogo" : "Perfil"}
           </button>
-
+          
           <button
             type="button"
             onClick={handleLeaderboard}

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import GameKeyboard from "./GameKeyboard";
 
 type LetterStatus = "default" | "present" | "absent" | "correct";
 
@@ -12,12 +13,6 @@ type GameResult = "playing" | "won" | "lost";
 const ROWS = 6;
 const COLUMNS = 5;
 const TARGET_WORD = "TORCE";
-
-const KEYBOARD_ROWS = [
-  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-  ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE"],
-];
 
 const DEFAULT_STATUS: LetterStatus = "default";
 
@@ -35,13 +30,6 @@ const CELL_STYLES: Record<LetterStatus, string> = {
   correct: "bg-[#3AA394] text-[#FAFAFF]",
 };
 
-const KEYBOARD_STYLES: Record<LetterStatus, string> = {
-  default: "bg-[#3A2C44] text-white hover:bg-[#4B3B58]",
-  present: "bg-[#D3AD69] text-[#FAFAFF]",
-  absent: "bg-[#312A2C] text-[#FAFAFF]",
-  correct: "bg-[#3AA394] text-[#FAFAFF]",
-};
-
 const createEmptyGrid = (): CellState[][] =>
   Array.from({ length: ROWS }, () =>
     Array.from({ length: COLUMNS }, () => ({
@@ -50,15 +38,31 @@ const createEmptyGrid = (): CellState[][] =>
     })),
   );
 
-const getFirstEmptyColumn = (row: CellState[]) => {
-  const index = row.findIndex((cell) => !cell.value);
-  return index === -1 ? COLUMNS : index;
+const getNextEmptyAfter = (row: CellState[], fromIndex: number) => {
+  for (let column = fromIndex + 1; column < COLUMNS; column += 1) {
+    if (!row[column].value) {
+      return column;
+    }
+  }
+  return null;
+};
+
+const getPreviousFilledColumn = (row: CellState[], fromIndex: number) => {
+  for (
+    let column = Math.min(fromIndex, COLUMNS - 1);
+    column >= 0;
+    column -= 1
+  ) {
+    if (row[column]?.value) {
+      return column;
+    }
+  }
+  return null;
 };
 
 const InfinityGame = () => {
   const [grid, setGrid] = useState<CellState[][]>(() => createEmptyGrid());
   const [currentRow, setCurrentRow] = useState(0);
-  const [, setCurrentCol] = useState(0);
   const [selectedCol, setSelectedCol] = useState(0);
   const [keyboardState, setKeyboardState] = useState<
     Record<string, LetterStatus>
@@ -76,12 +80,6 @@ const InfinityGame = () => {
 
   const isInputLocked = gameStatus !== "playing";
 
-  const synchronizePointers = (row: CellState[]) => {
-    const nextEmpty = getFirstEmptyColumn(row);
-    setCurrentCol(nextEmpty);
-    setSelectedCol(nextEmpty >= COLUMNS ? Math.max(COLUMNS - 1, 0) : nextEmpty);
-  };
-
   const handleLetter = (letter: string) => {
     if (isInputLocked) {
       return;
@@ -90,19 +88,12 @@ const InfinityGame = () => {
     const upperLetter = letter.toUpperCase();
 
     if (blockedLetters.has(upperLetter)) {
-      setFeedback(`A letra "${upperLetter}" não existe nesta palavra.`);
       return;
     }
 
-    const activeRow = grid[currentRow];
-    const normalizedCurrent = getFirstEmptyColumn(activeRow);
-    const isRowFull = normalizedCurrent === COLUMNS;
-    const insertionColumn =
-      isRowFull || selectedCol < normalizedCurrent
-        ? selectedCol
-        : normalizedCurrent;
+    const insertionColumn = Math.min(Math.max(selectedCol, 0), COLUMNS - 1);
 
-    if (insertionColumn >= COLUMNS) {
+    if (insertionColumn < 0 || insertionColumn >= COLUMNS) {
       setFeedback("Linha completa, envie ou apague uma letra.");
       return;
     }
@@ -124,7 +115,9 @@ const InfinityGame = () => {
         );
       });
 
-      synchronizePointers(next[currentRow]);
+      const updatedRow = next[currentRow];
+      const nextEmpty = getNextEmptyAfter(updatedRow, insertionColumn);
+      setSelectedCol(nextEmpty !== null ? nextEmpty : insertionColumn);
       return next;
     });
     setFeedback("");
@@ -136,28 +129,25 @@ const InfinityGame = () => {
     }
 
     const activeRow = grid[currentRow];
-    const normalizedCurrent = getFirstEmptyColumn(activeRow);
+    const targetIndex = activeRow[selectedCol]?.value
+      ? selectedCol
+      : getPreviousFilledColumn(activeRow, selectedCol - 1);
 
-    if (normalizedCurrent === 0 && !activeRow[0].value) {
+    if (targetIndex === null) {
       return;
     }
-
-    const deleteIndex =
-      normalizedCurrent === COLUMNS
-        ? COLUMNS - 1
-        : Math.max(normalizedCurrent - 1, 0);
 
     setGrid((previous) => {
       const next = previous.map((row, rowIndex) =>
         rowIndex === currentRow
           ? row.map((cell, columnIndex) =>
-              columnIndex === deleteIndex
+              columnIndex === targetIndex
                 ? { ...cell, value: "", status: DEFAULT_STATUS }
                 : cell,
             )
           : row,
       );
-      synchronizePointers(next[currentRow]);
+      setSelectedCol(targetIndex);
       return next;
     });
     setFeedback("");
@@ -237,7 +227,6 @@ const InfinityGame = () => {
     }
 
     setCurrentRow((prev) => prev + 1);
-    setCurrentCol(0);
     setSelectedCol(0);
     setFeedback("");
   };
@@ -327,39 +316,11 @@ const InfinityGame = () => {
 
       {feedback ? <p className="text-sm text-slate-300">{feedback}</p> : null}
 
-      <div className="flex flex-col gap-2">
-        {KEYBOARD_ROWS.map((row, rowIndex) => (
-          <div
-            key={`keyboard-row-${rowIndex}`}
-            className="flex justify-center gap-2"
-          >
-            {row.map((key) => {
-              const upperKey = key.toUpperCase();
-              const status = keyboardState[upperKey] ?? "default";
-              const isAction = key === "ENTER" || key === "DELETE";
-              const isDisabled =
-                isInputLocked || (status === "absent" && !isAction);
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  disabled={isDisabled}
-                  className={`min-w-12 rounded-md px-3 py-2 text-sm font-semibold transition focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 ${
-                    isAction ? "text-xs uppercase" : ""
-                  } ${KEYBOARD_STYLES[status]}`}
-                  onClick={() => handleKeyPress(upperKey)}
-                >
-                  {key === "DELETE"
-                    ? "Apagar"
-                    : key === "ENTER"
-                      ? "Enter"
-                      : key}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+      <GameKeyboard
+        statuses={keyboardState}
+        disabled={isInputLocked}
+        onKeyPress={handleKeyPress}
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/auth/use-auth.hook";
 import { useDailyWordsPuzzleQuery } from "../../hooks/words/use-daily-words-puzzle";
 import { useSubmitDailyGuessMutation } from "../../hooks/words/use-submit-daily-guess";
@@ -8,6 +8,7 @@ import type {
   DailyGuessResponse,
   DailyPuzzleGuess,
 } from "../../types/words";
+import GameKeyboard from "./GameKeyboard";
 
 type LetterStatus = DailyGuessLetterState | "default";
 
@@ -21,12 +22,6 @@ type GameResult = "playing" | "won" | "lost";
 const ROWS = 6;
 const COLUMNS = 5;
 
-const KEYBOARD_ROWS = [
-  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-  ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE"],
-];
-
 const DEFAULT_STATUS: LetterStatus = "default";
 
 const STATUS_PRIORITY: Record<LetterStatus, number> = {
@@ -38,13 +33,6 @@ const STATUS_PRIORITY: Record<LetterStatus, number> = {
 
 const CELL_STYLES: Record<LetterStatus, string> = {
   default: "bg-[#2B2232] text-slate-200 border border-[#4C3A55]",
-  present: "bg-[#D3AD69] text-[#FAFAFF]",
-  absent: "bg-[#312A2C] text-[#FAFAFF]",
-  correct: "bg-[#3AA394] text-[#FAFAFF]",
-};
-
-const KEYBOARD_STYLES: Record<LetterStatus, string> = {
-  default: "bg-[#3A2C44] text-white hover:bg-[#4B3B58]",
   present: "bg-[#D3AD69] text-[#FAFAFF]",
   absent: "bg-[#312A2C] text-[#FAFAFF]",
   correct: "bg-[#3AA394] text-[#FAFAFF]",
@@ -72,8 +60,21 @@ const getNextEmptyAfter = (row: CellState[], fromIndex: number) => {
   return null;
 };
 
+const getPreviousFilledColumn = (row: CellState[], fromIndex: number) => {
+  for (
+    let column = Math.min(fromIndex, COLUMNS - 1);
+    column >= 0;
+    column -= 1
+  ) {
+    if (row[column]?.value) {
+      return column;
+    }
+  }
+  return null;
+};
+
 const DailyGame = () => {
-  const { updateUser } = useAuth();
+  const { updateUser, user } = useAuth();
 
   const {
     data: dailyStatus,
@@ -94,6 +95,14 @@ const DailyGame = () => {
   >({});
   const [gameStatus, setGameStatus] = useState<GameResult>("playing");
   const [feedback, setFeedback] = useState<string>("");
+  const [isRowShaking, setIsRowShaking] = useState(false);
+  const [highlightEmptyCells, setHighlightEmptyCells] = useState(false);
+  const shakeTimeout = useRef<ReturnType<typeof window.setTimeout> | null>(
+    null,
+  );
+  const highlightTimeout = useRef<ReturnType<typeof window.setTimeout> | null>(
+    null,
+  );
 
   const blockedLetters = useMemo(
     () =>
@@ -114,6 +123,39 @@ const DailyGame = () => {
       nextEmpty >= COLUMNS ? Math.max(COLUMNS - 1, 0) : nextEmpty;
     setSelectedCol(nextSelected);
   };
+
+  const triggerRowShake = () => {
+    if (shakeTimeout.current) {
+      window.clearTimeout(shakeTimeout.current);
+    }
+    setIsRowShaking(true);
+    shakeTimeout.current = window.setTimeout(() => {
+      setIsRowShaking(false);
+      shakeTimeout.current = null;
+    }, 600);
+  };
+
+  const triggerHighlightEmpty = () => {
+    if (highlightTimeout.current) {
+      window.clearTimeout(highlightTimeout.current);
+    }
+    setHighlightEmptyCells(true);
+    highlightTimeout.current = window.setTimeout(() => {
+      setHighlightEmptyCells(false);
+      highlightTimeout.current = null;
+    }, 600);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (shakeTimeout.current) {
+        window.clearTimeout(shakeTimeout.current);
+      }
+      if (highlightTimeout.current) {
+        window.clearTimeout(highlightTimeout.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!dailyStatus || !dailyIdentifier) {
@@ -167,11 +209,7 @@ const DailyGame = () => {
       const nextRowIndex = Math.min(dailyStatus.attemptsUsed, ROWS - 1);
       setCurrentRow(nextRowIndex);
       synchronizePointers(baseGrid[nextRowIndex]);
-      setFeedback(
-        typeof dailyStatus.remainingAttempts === "number"
-          ? `Tentativas restantes: ${dailyStatus.remainingAttempts}`
-          : "",
-      );
+      setFeedback("");
       return;
     }
 
@@ -203,7 +241,6 @@ const DailyGame = () => {
     const upperLetter = letter.toUpperCase();
 
     if (blockedLetters.has(upperLetter)) {
-      setFeedback(`A letra "${upperLetter}" não existe nesta palavra.`);
       return;
     }
 
@@ -243,32 +280,27 @@ const DailyGame = () => {
     }
 
     const activeRow = grid[currentRow];
-    const firstEmpty = getFirstEmptyColumn(activeRow);
+    const targetIndex = activeRow[selectedCol]?.value
+      ? selectedCol
+      : getPreviousFilledColumn(activeRow, selectedCol - 1);
 
-    if (firstEmpty === 0 && !activeRow[0].value) {
+    if (targetIndex === null) {
       return;
     }
-
-    const deleteIndex =
-      firstEmpty === COLUMNS ? COLUMNS - 1 : Math.max(firstEmpty - 1, 0);
 
     setGrid((previous) => {
       const next = previous.map((row, rowIndex) =>
         rowIndex === currentRow
           ? row.map(
               (cell, columnIndex): CellState =>
-                columnIndex === deleteIndex
+                columnIndex === targetIndex
                   ? { ...cell, value: "", status: DEFAULT_STATUS }
                   : cell,
             )
           : row,
       );
 
-      const updatedRow = next[currentRow];
-      const nextEmpty = getFirstEmptyColumn(updatedRow);
-      const nextSelected =
-        nextEmpty >= COLUMNS ? Math.max(COLUMNS - 1, 0) : nextEmpty;
-      setSelectedCol(nextSelected);
+      setSelectedCol(targetIndex);
 
       return next;
     });
@@ -314,7 +346,19 @@ const DailyGame = () => {
 
   const handleGuessSuccess = (data: DailyGuessResponse) => {
     applyAttemptResult(data.attempt);
-    updateUser({ score: data.userScore });
+
+    const userUpdate: Partial<{
+      score: number;
+      streak: number;
+    }> = { score: data.userScore };
+
+    if (data.status === "won") {
+      userUpdate.streak = (user?.streak ?? 0) + 1;
+    } else if (data.status === "lost") {
+      userUpdate.streak = 0;
+    }
+
+    updateUser(userUpdate);
 
     if (data.status === "in_progress") {
       setGameStatus("playing");
@@ -327,11 +371,7 @@ const DailyGame = () => {
         nextEmpty >= COLUMNS ? Math.max(COLUMNS - 1, 0) : nextEmpty;
       setSelectedCol(nextSelected);
 
-      setFeedback(
-        typeof data.remainingAttempts === "number"
-          ? `Tentativas restantes: ${data.remainingAttempts}`
-          : "",
-      );
+      setFeedback("");
       return;
     }
 
@@ -366,7 +406,8 @@ const DailyGame = () => {
 
     const guess = grid[currentRow].map((cell) => cell.value).join("");
     if (guess.length !== COLUMNS) {
-      setFeedback("Complete a palavra antes de enviar.");
+      triggerHighlightEmpty();
+      setFeedback("");
       return;
     }
 
@@ -378,6 +419,16 @@ const DailyGame = () => {
       {
         onSuccess: handleGuessSuccess,
         onError: (error) => {
+          if (
+            axios.isAxiosError(error) &&
+            (error.response?.data as { error?: string })?.error ===
+              "Guess word is not allowed"
+          ) {
+            setFeedback("");
+            triggerRowShake();
+            return;
+          }
+
           setFeedback(extractErrorMessage(error));
         },
       },
@@ -454,9 +505,17 @@ const DailyGame = () => {
           const rowClass = getRowStateClass(rowIndex);
           const isCurrentRow = rowIndex === currentRow && !isInputLocked;
           return (
-            <div key={`row-${rowIndex}`} className={`flex gap-2 ${rowClass}`}>
+            <div
+              key={`row-${rowIndex}`}
+              className={`flex gap-2 ${rowClass} ${
+                isRowShaking && rowIndex === currentRow ? "shake-row" : ""
+              }`}
+            >
               {row.map((cell, columnIndex) => {
                 const isSelected = isCurrentRow && columnIndex === selectedCol;
+                const shakingCell = isRowShaking && rowIndex === currentRow;
+                const shouldHighlight =
+                  highlightEmptyCells && isCurrentRow && !cell.value;
                 return (
                   <button
                     type="button"
@@ -469,6 +528,9 @@ const DailyGame = () => {
                       isSelected
                         ? "ring-2 ring-[#F2B94B] shadow-[0_0_8px_rgba(242,185,75,0.55)]"
                         : ""
+                    } ${
+                      shakingCell ? "border-2 border-red-500" : ""
+                    } ${shouldHighlight ? "cell-highlight" : ""}
                     } ${isCurrentRow ? "cursor-pointer" : "cursor-default"}`}
                   >
                     {cell.value}
@@ -482,39 +544,11 @@ const DailyGame = () => {
 
       {feedback ? <p className="text-sm text-slate-300">{feedback}</p> : null}
 
-      <div className="flex flex-col gap-2">
-        {KEYBOARD_ROWS.map((row, rowIndex) => (
-          <div
-            key={`keyboard-row-${rowIndex}`}
-            className="flex justify-center gap-2"
-          >
-            {row.map((key) => {
-              const upperKey = key.toUpperCase();
-              const status = keyboardState[upperKey] ?? "default";
-              const isAction = key === "ENTER" || key === "DELETE";
-              const isDisabled =
-                isInputLocked || (status === "absent" && !isAction);
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  disabled={isDisabled}
-                  className={`min-w-12 rounded-md px-3 py-2 text-sm cursor-pointer font-semibold transition focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 ${
-                    isAction ? "text-xs uppercase" : ""
-                  } ${KEYBOARD_STYLES[status]}`}
-                  onClick={() => handleKeyPress(upperKey)}
-                >
-                  {key === "DELETE"
-                    ? "Apagar"
-                    : key === "ENTER"
-                      ? "Enter"
-                      : key}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+      <GameKeyboard
+        statuses={keyboardState}
+        disabled={isInputLocked}
+        onKeyPress={handleKeyPress}
+      />
     </div>
   );
 };
