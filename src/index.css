@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=Doto:wght@400;600;700&display=swap");
+
+:root {
+  font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #1f1f1f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #1f1f1f;
+  color: rgba(255, 255, 255, 0.87);
+  overflow: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  height: 100vh;
+}
+
+a {
+  color: #7f5cff;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+}

@@ -1,0 +1,114 @@
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/auth/use-auth.hook";
+import type { ReactNode } from "react";
+
+type AuthenticatedLayoutProps = {
+  children: ReactNode;
+};
+
+const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const atProfile = location.pathname === "/profile";
+  const atLeaderboard = location.pathname === "/leaderboard";
+
+  const handleNavigate = () => {
+    if (!user) return;
+
+    if (atProfile) {
+      navigate("/game");
+    } else {
+      navigate("/profile");
+    }
+  };
+
+  const handleLeaderboard = () => {
+    if (!user) return;
+
+    if (atLeaderboard) {
+      navigate("/game");
+    } else {
+      navigate("/leaderboard");
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  return (
+    <section className="flex min-h-screen justify-center  items-center flex-col bg-[#1f1f1f] text-white">
+      <header className="flex items-center w-3/4 justify-between border-b border-neutral-800 px-6 py-4">
+        <div className="flex flex-col gap-2 text-left">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-neutral-500">
+              Jogador atual
+            </p>
+            <p className="text-lg font-semibold">{user?.name ?? "Convidado"}</p>
+          </div>
+
+          <div className="flex gap-6 text-sm">
+            <div className="rounded-md border border-neutral-700 px-3 py-1.5">
+              <p className="text-[11px] uppercase tracking-wide text-neutral-500">
+                PontuaÃ§Ã£o
+              </p>
+              <p className="text-base font-semibold">{user?.score ?? 0}</p>
+            </div>
+            <div className="rounded-md border border-neutral-700 px-3 py-1.5">
+              <p className="text-[11px] uppercase tracking-wide text-neutral-500">
+                SequÃªncia
+              </p>
+              <p className="text-base font-semibold">{user?.streak ?? 0}</p>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleNavigate}
+            className="rounded border border-neutral-700 px-4 py-2 text-sm font-semibold transition hover:border-neutral-500 hover:cursor-pointer"
+          >
+            {atProfile ? "Jogo" : "Perfil"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLeaderboard}
+            className={`inline-flex items-center gap-1 rounded border border-neutral-700 px-3 py-2 text-sm font-semibold transition hover:border-neutral-500 hover:cursor-pointer ${
+              atLeaderboard ? "bg-neutral-800" : ""
+            }`}
+          >
+            <span className="text-xs">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-4 w-4 fill-current"
+              >
+                <path d="M7 3h10v2h3a1 1 0 0 1 1 1v1.5A5.5 5.5 0 0 1 15 13h-1.06A4 4 0 0 1 13 16v1h2a1 1 0 0 1 .8 1.6L14 21h-4l-1.8-2.4A1 1 0 0 1 9 17h2v-1a4 4 0 0 1-.94-3H9A5.5 5.5 0 0 1 3 7.5V6a1 1 0 0 1 1-1h3V3Zm2 2v2a3 3 0 0 0 6 0V5H9Zm-4 2.5A3.5 3.5 0 0 0 8.5 11H9V7H5v0.5Zm10 3.5h.5A3.5 3.5 0 0 0 19 7.5V7h-4v4Z" />
+              </svg>
+            </span>
+            <span>Ranking</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded bg-red-900 px-4 py-2 text-sm font-semibold transition hover:bg-red-700 hover:cursor-pointer"
+          >
+            Sair
+          </button>
+        </nav>
+      </header>
+
+      <main className="flex flex-1 bg-[#1f1f1f]  w-full items-center justify-center">
+        {children}
+      </main>
+    </section>
+  );
+};
+
+export default AuthenticatedLayout;
