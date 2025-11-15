@@ -177,8 +177,8 @@ const DailyGame = () => {
       setGameStatus("won");
       setFeedback(
         dailyStatus.scoreAwarded
-          ? `VocÃƒÆ’Ã‚Âª venceu! +${dailyStatus.scoreAwarded} pts`
-          : "VocÃƒÆ’Ã‚Âª venceu!",
+          ? `Você venceu! +${dailyStatus.scoreAwarded} pts`
+          : "Você venceu!",
       );
     } else {
       setGameStatus("lost");
@@ -194,7 +194,7 @@ const DailyGame = () => {
     const upperLetter = letter.toUpperCase();
 
     if (blockedLetters.has(upperLetter)) {
-      setFeedback(`A letra "${upperLetter}" nÃƒÆ’Ã‚Â£o existe nesta palavra.`);
+      setFeedback(`A letra "${upperLetter}" não existe nesta palavra.`);
       return;
     }
 
@@ -336,8 +336,8 @@ const DailyGame = () => {
     if (data.status === "won") {
       setFeedback(
         data.scoreAwarded
-          ? `VocÃƒÆ’Ã‚Âª venceu! +${data.scoreAwarded} pts`
-          : "VocÃƒÆ’Ã‚Âª venceu!",
+          ? `Você venceu! +${data.scoreAwarded} pts`
+          : "Você venceu!",
       );
     } else {
       setFeedback("Tentativas esgotadas para hoje.");
@@ -353,7 +353,7 @@ const DailyGame = () => {
       return error.message;
     }
 
-    return "NÃƒÆ’Ã‚Â£o foi possÃƒÆ’Ã‚Â­vel enviar a tentativa. Tente novamente.";
+    return "Não foi possível enviar a tentativa. Tente novamente.";
   };
 
   const evaluateGuess = () => {
@@ -411,7 +411,7 @@ const DailyGame = () => {
   if (isPuzzleLoading) {
     return (
       <div className="text-center text-sm text-slate-300">
-        Carregando puzzle diárioÃ¡rioÃ¡rioÃƒÆ’Ã‚Â¡rio...
+        Carregando puzzle diário...
       </div>
     );
   }
@@ -425,7 +425,7 @@ const DailyGame = () => {
                 message?: string;
               }
             )?.message ?? puzzleError.message)
-          : "NÃƒÆ’Ã‚Â£o foi possÃƒÆ’Ã‚Â­vel carregar o puzzle diÃƒÆ’Ã‚Â¡rio."}
+          : "Não foi possível carregar o puzzle diário."}
       </div>
     );
   }

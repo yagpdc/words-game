@@ -39,10 +39,14 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
     navigate("/");
   };
 
+  const mainAlignment = atLeaderboard
+    ? "items-start justify-center px-8 py-10"
+    : "items-center justify-center";
+
   return (
     <section className="flex min-h-screen justify-center  items-center flex-col bg-[#1f1f1f] text-white">
       <header className="flex items-center w-3/4 justify-between border-b border-neutral-800 px-6 py-4">
-        <div className="flex flex-col gap-2 text-left">
+        <div className="flex  gap-2 text-left">
           <div>
             <p className="text-xs uppercase tracking-wide text-neutral-500">
               Jogador atual
@@ -50,19 +54,17 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
             <p className="text-lg font-semibold">{user?.name ?? "Convidado"}</p>
           </div>
 
-          <div className="flex gap-6 text-sm">
-            <div className="rounded-md border border-neutral-700 px-3 py-1.5">
-              <p className="text-[11px] uppercase tracking-wide text-neutral-500">
-                PontuaÃ§Ã£o
-              </p>
-              <p className="text-base font-semibold">{user?.score ?? 0}</p>
-            </div>
-            <div className="rounded-md border border-neutral-700 px-3 py-1.5">
-              <p className="text-[11px] uppercase tracking-wide text-neutral-500">
-                SequÃªncia
-              </p>
-              <p className="text-base font-semibold">{user?.streak ?? 0}</p>
-            </div>
+          <div className=" flex items-center gap-2 px-3 ">
+            <p className="text-[11px] uppercase tracking-wide text-neutral-500">
+              Pontuação
+            </p>
+            <p className="text-base font-semibold">{user?.score ?? 0}</p>
+          </div>
+          <div className=" flex items-center gap-2 px-3 py-1.5">
+            <p className="text-[11px] uppercase tracking-wide text-neutral-500">
+              Streak
+            </p>
+            <p className="text-base font-semibold">{user?.streak ?? 0}</p>
           </div>
         </div>
 
@@ -104,7 +106,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
         </nav>
       </header>
 
-      <main className="flex flex-1 bg-[#1f1f1f]  w-full items-center justify-center">
+      <main className={`flex flex-1 bg-[#1f1f1f]  w-full ${mainAlignment}`}>
         {children}
       </main>
     </section>

@@ -8,12 +8,7 @@ const Leaderboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const {
-    data: ranking,
-    isLoading,
-    error,
-    refetch,
-  } = useWordsRankingQuery();
+  const { data: ranking, isLoading, error, refetch } = useWordsRankingQuery();
 
   const currentUserId = user?.id;
 
@@ -68,7 +63,7 @@ const Leaderboard = () => {
   }
 
   return (
-    <section className="flex flex-col items-center gap-6 text-white">
+    <section className="flex w-full max-w-4xl flex-col items-center gap-6 text-white">
       <header className="text-center">
         <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">
           Words · Daily
@@ -76,44 +71,53 @@ const Leaderboard = () => {
         <h1 className="text-3xl font-semibold">Ranking diário</h1>
       </header>
 
-      <div className="w-full max-w-xl overflow-hidden rounded-lg border border-neutral-800 bg-[#1b171f]">
-        <div className="grid grid-cols-[3rem,1fr,5rem,5rem] border-b border-neutral-800 bg-[#231d29] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
-          <span className="text-center">Pos</span>
-          <span>Jogador</span>
-          <span className="text-center">Score</span>
-          <span className="text-center">Streak</span>
-        </div>
+      <div className="w-full overflow-hidden rounded-lg border border-neutral-800 bg-[#1b171f]">
+        <table className="w-full table-auto text-sm">
+          <thead>
+            <tr className="bg-[#231d29] text-xs font-semibold uppercase tracking-wide text-neutral-400">
+              <th className="px-5 py-2 text-left">Jogador</th>
+              <th className="px-5 py-2 text-center">Pos</th>
+              <th className="px-5 py-2 text-center">Streak</th>
+              <th className="px-5 py-2 text-center">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ranking.map((item, index) => {
+              const isCurrent = item.id === currentUserId;
 
-        <ul className="divide-y divide-neutral-800">
-          {ranking.map((item, index) => {
-            const isCurrent = item.id === currentUserId;
-
-            return (
-              <li
-                key={item.id}
-                className={`grid grid-cols-[3rem,1fr,5rem,5rem] items-center px-4 py-2 text-sm ${
-                  isCurrent
-                    ? "bg-[#272134] font-semibold text-slate-50"
-                    : "text-neutral-200"
-                }`}
-              >
-                <span className="text-center text-xs text-neutral-500">
-                  {index + 1}
-                </span>
-                <span className="truncate">
-                  {item.name}
-                  {isCurrent ? (
-                    <span className="ml-2 rounded bg-amber-500/10 px-2 py-px text-[10px] font-semibold uppercase text-amber-300">
-                      você
+              return (
+                <tr
+                  key={item.id}
+                  className={`border-b border-neutral-800 ${
+                    isCurrent
+                      ? "bg-[#272134] font-semibold text-slate-50"
+                      : "text-neutral-200"
+                  }`}
+                >
+                  <td className="px-5 py-2">
+                    <span className="truncate">
+                      {item.name}
+                      {isCurrent ? (
+                        <span className="ml-2 rounded bg-amber-500/10 px-2 py-px text-[10px] font-semibold uppercase text-amber-300">
+                          você
+                        </span>
+                      ) : null}
                     </span>
-                  ) : null}
-                </span>
-                <span className="text-center text-sm">{item.score}</span>
-                <span className="text-center text-sm">{item.streak}</span>
-              </li>
-            );
-          })}
-        </ul>
+                  </td>
+                  <td className="px-5 py-2 text-center text-xs text-neutral-500">
+                    {index + 1}
+                  </td>
+                  <td className="px-5 py-2 text-center text-sm font-medium">
+                    {item.streak}
+                  </td>
+                  <td className="px-5 py-2 text-center text-sm font-medium">
+                    {item.score}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </section>
   );
