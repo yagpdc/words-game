@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/auth/use-auth.hook";
 import { useDailyWordsPuzzleQuery } from "../../hooks/words/use-daily-words-puzzle";
 import { useSubmitDailyGuessMutation } from "../../hooks/words/use-submit-daily-guess";
@@ -18,6 +19,7 @@ type CellState = {
 };
 
 type GameResult = "playing" | "won" | "lost";
+type ShareButtonState = "idle" | "copied" | "error";
 
 const ROWS = 6;
 const COLUMNS = 5;
@@ -32,11 +34,19 @@ const STATUS_PRIORITY: Record<LetterStatus, number> = {
 };
 
 const CELL_STYLES: Record<LetterStatus, string> = {
-  default: "bg-[#2B2232] text-slate-200 border border-[#4C3A55]",
-  present: "bg-[#D3AD69] text-[#FAFAFF]",
-  absent: "bg-[#312A2C] text-[#FAFAFF]",
-  correct: "bg-[#3AA394] text-[#FAFAFF]",
+  default: "bg-[#1E1827] text-[#F8F5FF] border border-[#9C7CD8]",
+  present: "bg-[#E19B30] text-[#1B0F02]",
+  absent: "bg-[#120B16] text-[#F8F5FF]",
+  correct: "bg-[#0F8F74] text-[#F5FFFA]",
 };
+
+const SHARE_SYMBOLS: Record<LetterStatus, string> = {
+  default: "⬜",
+  absent: "⬛",
+  present: "🟨",
+  correct: "🟩",
+};
+const SHARE_STATUS_RESET_MS = 2500;
 
 const createEmptyGrid = (): CellState[][] =>
   Array.from({ length: ROWS }, () =>
@@ -103,19 +113,61 @@ const DailyGame = () => {
   const highlightTimeout = useRef<ReturnType<typeof window.setTimeout> | null>(
     null,
   );
-
-  const blockedLetters = useMemo(
-    () =>
-      new Set(
-        Object.entries(keyboardState)
-          .filter(([, status]) => status === "absent")
-          .map(([letter]) => letter),
-      ),
-    [keyboardState],
-  );
+  const shareStatusTimeout = useRef<ReturnType<
+    typeof window.setTimeout
+  > | null>(null);
+  const [shareButtonState, setShareButtonState] =
+    useState<ShareButtonState>("idle");
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [hasShownResultModal, setHasShownResultModal] = useState(false);
+  const [lastScoreAwarded, setLastScoreAwarded] = useState<number | null>(null);
 
   const isInputLocked =
     gameStatus !== "playing" || guessMutation.isPending || !dailyIdentifier;
+
+  const completedRows = useMemo(
+    () =>
+      grid.filter(
+        (row) =>
+          row.some((cell) => cell.value) &&
+          row.every((cell) => cell.status !== DEFAULT_STATUS),
+      ),
+    [grid],
+  );
+
+  const completedAttempts = completedRows.length;
+  const isGameFinished = gameStatus !== "playing" && completedAttempts > 0;
+  const shareRows = useMemo(
+    () =>
+      completedRows.map((row) =>
+        row
+          .map((cell) => SHARE_SYMBOLS[cell.status] ?? SHARE_SYMBOLS.default)
+          .join(""),
+      ),
+    [completedRows],
+  );
+  const shareButtonDisabled = !isGameFinished || shareRows.length === 0;
+  const resolvedScore = lastScoreAwarded ?? 0;
+  const currentStreak = user?.streak ?? 0;
+  const resultTitle =
+    gameStatus === "won" ? "Você venceu!" : "Tentativas esgotadas";
+  const resultLabel = gameStatus === "won" ? "Vitória" : "Derrota";
+  const resultDescription =
+    gameStatus === "won"
+      ? "Parabéns! Você encontrou a palavra do dia."
+      : "Não foi dessa vez, mas amanhã tem outra chance.";
+  const shareButtonLabelPrimary =
+    shareButtonState === "idle"
+      ? "Compartilhar resultado"
+      : shareButtonState === "copied"
+        ? "Copiado!"
+        : "Tentar novamente";
+  const shareButtonLabelModal =
+    shareButtonState === "idle"
+      ? "Compartilhar"
+      : shareButtonState === "copied"
+        ? "Copiado!"
+        : "Tentar novamente";
 
   const synchronizePointers = (row: CellState[]) => {
     const nextEmpty = getFirstEmptyColumn(row);
@@ -154,8 +206,21 @@ const DailyGame = () => {
       if (highlightTimeout.current) {
         window.clearTimeout(highlightTimeout.current);
       }
+      if (shareStatusTimeout.current) {
+        window.clearTimeout(shareStatusTimeout.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (shareStatusTimeout.current) {
+      window.clearTimeout(shareStatusTimeout.current);
+      shareStatusTimeout.current = null;
+    }
+    setHasShownResultModal(false);
+    setIsResultModalOpen(false);
+    setShareButtonState("idle");
+  }, [dailyIdentifier]);
 
   useEffect(() => {
     if (!dailyStatus || !dailyIdentifier) {
@@ -201,6 +266,7 @@ const DailyGame = () => {
 
     setGrid(baseGrid);
     setKeyboardState(nextKeyboard);
+    setLastScoreAwarded(dailyStatus.scoreAwarded ?? null);
 
     const backendStatus = dailyStatus.status;
 
@@ -222,16 +288,19 @@ const DailyGame = () => {
 
     if (backendStatus === "won") {
       setGameStatus("won");
-      setFeedback(
-        dailyStatus.scoreAwarded
-          ? `Você venceu! +${dailyStatus.scoreAwarded} pts`
-          : "Você venceu!",
-      );
+      setFeedback("");
     } else {
       setGameStatus("lost");
-      setFeedback("Tentativas esgotadas para hoje.");
+      setFeedback("");
     }
   }, [dailyIdentifier, dailyStatus]);
+
+  useEffect(() => {
+    if (isGameFinished && !hasShownResultModal) {
+      setIsResultModalOpen(true);
+      setHasShownResultModal(true);
+    }
+  }, [hasShownResultModal, isGameFinished]);
 
   const handleLetter = (letter: string) => {
     if (isInputLocked) {
@@ -239,10 +308,6 @@ const DailyGame = () => {
     }
 
     const upperLetter = letter.toUpperCase();
-
-    if (blockedLetters.has(upperLetter)) {
-      return;
-    }
 
     const insertionColumn = Math.min(Math.max(selectedCol, 0), COLUMNS - 1);
 
@@ -346,6 +411,7 @@ const DailyGame = () => {
 
   const handleGuessSuccess = (data: DailyGuessResponse) => {
     applyAttemptResult(data.attempt);
+    setLastScoreAwarded(data.scoreAwarded ?? null);
 
     const userUpdate: Partial<{
       score: number;
@@ -376,15 +442,7 @@ const DailyGame = () => {
     }
 
     setGameStatus(data.status);
-    if (data.status === "won") {
-      setFeedback(
-        data.scoreAwarded
-          ? `Você venceu! +${data.scoreAwarded} pts`
-          : "Você venceu!",
-      );
-    } else {
-      setFeedback("Tentativas esgotadas para hoje.");
-    }
+    setFeedback("");
   };
 
   const extractErrorMessage = (error: unknown) => {
@@ -433,6 +491,87 @@ const DailyGame = () => {
         },
       },
     );
+  };
+
+  const buildShareText = () => {
+    if (!isGameFinished || !shareRows.length) {
+      return null;
+    }
+
+    const attemptsLabel =
+      gameStatus === "won" ? `${completedAttempts}/${ROWS}` : `X/${ROWS}`;
+    const header = dailyStatus?.date
+      ? `Words Daily ${dailyStatus.date}`
+      : "Words Daily";
+    const origin =
+      typeof window !== "undefined" && window.location
+        ? window.location.origin
+        : "";
+    const link = origin ? `${origin}/game/daily` : "/game/daily";
+    const board = shareRows.join("\n");
+
+    return [`${header} ${attemptsLabel}`, board, link]
+      .filter(Boolean)
+      .join("\n");
+  };
+
+  const copyShareToClipboard = async (text: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    if (typeof document !== "undefined") {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      textArea.setAttribute("readonly", "");
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      if (!successful) {
+        throw new Error("execCommand falhou");
+      }
+      return;
+    }
+
+    throw new Error("Clipboard API indisponível");
+  };
+
+  const updateShareButtonState = (state: ShareButtonState) => {
+    if (shareStatusTimeout.current) {
+      window.clearTimeout(shareStatusTimeout.current);
+      shareStatusTimeout.current = null;
+    }
+    setShareButtonState(state);
+    if (state !== "idle") {
+      shareStatusTimeout.current = window.setTimeout(() => {
+        setShareButtonState("idle");
+        shareStatusTimeout.current = null;
+      }, SHARE_STATUS_RESET_MS);
+    }
+  };
+
+  const handleShareResult = async () => {
+    const shareText = buildShareText();
+    if (!shareText) {
+      updateShareButtonState("error");
+      return;
+    }
+
+    try {
+      await copyShareToClipboard(shareText);
+      updateShareButtonState("copied");
+    } catch {
+      updateShareButtonState("error");
+    }
+  };
+
+  const closeResultModal = () => {
+    setIsResultModalOpen(false);
   };
 
   const handleKeyPress = (key: string) => {
@@ -489,67 +628,183 @@ const DailyGame = () => {
   }
 
   return (
-    <div className="flex flex-col items-center gap-8 text-white">
-      <header className="text-center">
-        <p className="text-sm uppercase tracking-[0.4em] text-slate-400">
-          Daily
-        </p>
-        <h1 className="text-3xl font-semibold text-white">
-          Descubra a palavra do dia
-        </h1>
-        <p className="text-xs text-slate-500">{dailyStatus.date}</p>
-      </header>
-
-      <div className="flex flex-col gap-2">
-        {grid.map((row, rowIndex) => {
-          const rowClass = getRowStateClass(rowIndex);
-          const isCurrentRow = rowIndex === currentRow && !isInputLocked;
-          return (
-            <div
-              key={`row-${rowIndex}`}
-              className={`flex gap-2 ${rowClass} ${
-                isRowShaking && rowIndex === currentRow ? "shake-row" : ""
-              }`}
+    <>
+      <div className="flex flex-col items-center gap-8 text-white ">
+        <header className="flex w-full flex-col items-center gap-3">
+          <div className="flex w-full flex-col items-center gap-3   sm:flex-row sm:items-center sm:justify-between">
+            <Link
+              to="/game"
+              className="inline-flex items-center gap-2 rounded-md border text-slate-200! border-neutral-700 px-4 py-2 text-sm font-semibold  transition hover:border-neutral-500 hover:text-white"
             >
-              {row.map((cell, columnIndex) => {
-                const isSelected = isCurrentRow && columnIndex === selectedCol;
-                const shakingCell = isRowShaking && rowIndex === currentRow;
-                const shouldHighlight =
-                  highlightEmptyCells && isCurrentRow && !cell.value;
-                return (
-                  <button
-                    type="button"
-                    key={`cell-${rowIndex}-${columnIndex}`}
-                    disabled={!isCurrentRow}
-                    onClick={() => handleCellClick(rowIndex, columnIndex)}
-                    className={`flex h-14 w-14 items-center justify-center rounded-md text-2xl font-semibold uppercase transition ${
-                      CELL_STYLES[cell.status]
-                    } ${
-                      isSelected
-                        ? "ring-2 ring-[#F2B94B] shadow-[0_0_8px_rgba(242,185,75,0.55)]"
-                        : ""
-                    } ${
-                      shakingCell ? "border-2 border-red-500" : ""
-                    } ${shouldHighlight ? "cell-highlight" : ""}
-                    } ${isCurrentRow ? "cursor-pointer" : "cursor-default"}`}
-                  >
-                    {cell.value}
-                  </button>
-                );
-              })}
+              {"\u2190"} Voltar para modos
+            </Link>
+            <div className="flex flex-1 flex-col items-center text-center sm:px-6">
+              <p className="text-sm uppercase tracking-[0.4em] text-slate-400">
+                Daily
+              </p>
+              <h1 className="text-3xl font-semibold text-white">
+                Descubra a palavra do dia
+              </h1>
             </div>
-          );
-        })}
+            <div className="hidden w-[170px] sm:block" aria-hidden="true" />
+          </div>
+          <p className="text-xs text-slate-500">{dailyStatus.date}</p>
+        </header>
+
+        <div className="flex flex-col gap-2">
+          {grid.map((row, rowIndex) => {
+            const rowClass = getRowStateClass(rowIndex);
+            const isCurrentRow = rowIndex === currentRow && !isInputLocked;
+            return (
+              <div
+                key={`row-${rowIndex}`}
+                className={`flex gap-2 ${rowClass} ${
+                  isRowShaking && rowIndex === currentRow ? "shake-row" : ""
+                }`}
+              >
+                {row.map((cell, columnIndex) => {
+                  const isSelected =
+                    isCurrentRow && columnIndex === selectedCol;
+                  const shakingCell = isRowShaking && rowIndex === currentRow;
+                  const shouldHighlight =
+                    highlightEmptyCells && isCurrentRow && !cell.value;
+                  return (
+                    <button
+                      type="button"
+                      key={`cell-${rowIndex}-${columnIndex}`}
+                      disabled={!isCurrentRow}
+                      onClick={() => handleCellClick(rowIndex, columnIndex)}
+                      className={`flex h-14 w-14 items-center justify-center rounded-md text-2xl font-semibold uppercase transition ${
+                        CELL_STYLES[cell.status]
+                      } ${
+                        isSelected
+                          ? "ring-2 ring-[#F2B94B] shadow-[0_0_8px_rgba(242,185,75,0.55)]"
+                          : ""
+                      } ${
+                        shakingCell ? "border-2 border-red-500" : ""
+                      } ${shouldHighlight ? "cell-highlight" : ""}
+                    } ${isCurrentRow ? "cursor-pointer" : "cursor-default"}`}
+                    >
+                      {cell.value}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+
+        {feedback ? <p className="text-sm text-slate-300">{feedback}</p> : null}
+
+        <GameKeyboard
+          statuses={keyboardState}
+          disabled={isInputLocked}
+          onKeyPress={handleKeyPress}
+        />
+
+        <div className="flex flex-col items-center gap-2">
+          {isGameFinished ? (
+            <>
+              <button
+                type="button"
+                onClick={handleShareResult}
+                className="rounded-md cursor-pointer  bg-[#9C7CD8] px-4 py-2 text-sm font-semibold text-[#120B16] transition hover:bg-[#B793FF]"
+              >
+                {shareButtonLabelPrimary}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsResultModalOpen(true)}
+                className="text-xs font-semibold cursor-pointer text-slate-300 underline decoration-dotted underline-offset-4 transition hover:text-white"
+              >
+                Ver resumo do dia
+              </button>
+            </>
+          ) : null}
+        </div>
       </div>
 
-      {feedback ? <p className="text-sm text-slate-300">{feedback}</p> : null}
-
-      <GameKeyboard
-        statuses={keyboardState}
-        disabled={isInputLocked}
-        onKeyPress={handleKeyPress}
-      />
-    </div>
+      {isResultModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="relative w-full max-w-md rounded-lg bg-[#1B1422] p-6 text-white shadow-2xl">
+            <button
+              type="button"
+              onClick={closeResultModal}
+              className="absolute right-4 cursor-pointer top-4 text-lg font-bold text-slate-400 transition hover:text-white"
+              aria-label="Fechar resumo"
+            >
+              X
+            </button>
+            <div className="mb-4 text-center">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                Resultado diário
+              </p>
+              <h2 className="text-2xl font-semibold text-white">
+                {resultTitle}
+              </h2>
+              <p className="text-sm text-slate-400">{dailyStatus.date}</p>
+              <p className="mt-2 text-xs text-slate-300">{resultDescription}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-center text-xs uppercase text-slate-400">
+              <div className="rounded-lg border border-[#3B2D46] p-3">
+                <p className="mb-1">Tentativas</p>
+                <p className="text-xl font-semibold text-white">
+                  {completedAttempts}/{ROWS}
+                </p>
+              </div>
+              <div className="rounded-lg border border-[#3B2D46] p-3">
+                <p className="mb-1">Pontuação</p>
+                <p className="text-xl font-semibold text-white">
+                  {resolvedScore}
+                </p>
+              </div>
+              <div className="rounded-lg border border-[#3B2D46] p-3">
+                <p className="mb-1">Status</p>
+                <p className="text-xl font-semibold text-white">
+                  {resultLabel}
+                </p>
+              </div>
+              <div className="rounded-lg border border-[#3B2D46] p-3">
+                <p className="mb-1">Streak</p>
+                <p className="text-xl font-semibold text-white">
+                  {currentStreak}
+                </p>
+              </div>
+            </div>
+            {shareRows.length ? (
+              <div className="mt-6 rounded-md bg-[#22182F] p-4 text-center text-2xl leading-tight">
+                {shareRows.map((row, index) => (
+                  <div className="font-mono" key={`share-row-${index}`}>
+                    {row}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleShareResult}
+                disabled={shareButtonDisabled}
+                className={`cursor-pointer flex-1 rounded-md px-4 py-2 text-sm font-semibold transition focus:outline-none ${
+                  shareButtonDisabled
+                    ? "cursor-not-allowed bg-[#2F2437] text-slate-500 opacity-60"
+                    : "bg-[#9C7CD8] text-[#120B16] hover:bg-[#B793FF]"
+                }`}
+              >
+                {shareButtonLabelModal}
+              </button>
+              <button
+                type="button"
+                onClick={closeResultModal}
+                className="flex-1 rounded-md cursor-pointer border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-slate-400"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 };
 

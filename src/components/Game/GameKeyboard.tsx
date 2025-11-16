@@ -10,10 +10,10 @@ const DEFAULT_LAYOUT = [
 ];
 
 const KEYBOARD_STYLES: Record<KeyboardLetterStatus, string> = {
-  default: "bg-[#3A2C44] text-white hover:bg-[#4B3B58]",
-  present: "bg-[#D3AD69] text-[#FAFAFF]",
-  absent: "bg-[#312A2C] text-[#FAFAFF]",
-  correct: "bg-[#3AA394] text-[#FAFAFF]",
+  default: "bg-[#2B1F40] text-[#FBFAFF] hover:bg-[#4B3571]",
+  present: "bg-[#E19B30] text-[#1B0F02]",
+  absent: "bg-[#120B16] text-[#F8F5FF]",
+  correct: "bg-[#0F8F74] text-[#F5FFFA]",
 };
 
 const isActionKey = (key: string) => key === "ENTER" || key === "DELETE";
@@ -74,7 +74,7 @@ const GameKeyboard = ({
             const upperKey = key.toUpperCase();
             const status = statuses[upperKey] ?? "default";
             const action = isActionKey(upperKey);
-            const isDisabled = disabled || (!action && status === "absent");
+            const isDisabled = disabled;
 
             return (
               <button
