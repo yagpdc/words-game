@@ -7,6 +7,7 @@ import GameInfinity from "./screens/GameInfinity";
 import Leaderboard from "./screens/Leaderboard";
 import Login from "./screens/Login";
 import Profile from "./screens/Profile";
+import History from "./screens/History";
 
 const Router = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -87,6 +88,18 @@ const Router = () => {
           isAuthenticated ? (
             <AuthenticatedLayout>
               <Profile />
+            </AuthenticatedLayout>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          isAuthenticated ? (
+            <AuthenticatedLayout>
+              <History />
             </AuthenticatedLayout>
           ) : (
             <Navigate to="/" replace />

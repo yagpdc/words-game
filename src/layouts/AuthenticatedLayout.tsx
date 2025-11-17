@@ -14,8 +14,9 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
 
   const atProfile = location.pathname === "/profile";
   const atLeaderboard = location.pathname === "/leaderboard";
+  const atHistory = location.pathname === "/history";
 
-  const handleNavigate = () => {
+  const handleProfile = () => {
     if (!user) return;
 
     if (atProfile) {
@@ -35,14 +36,25 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
     }
   };
 
+  const handleHistory = () => {
+    if (!user) return;
+
+    if (atHistory) {
+      navigate("/game");
+    } else {
+      navigate("/history");
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  const mainAlignment = atLeaderboard
-    ? "items-start justify-center px-8 py-10"
-    : "items-center justify-center";
+  const mainAlignment =
+    atLeaderboard || atHistory
+      ? "items-start justify-center px-8 py-10"
+      : "items-center justify-center";
 
   return (
     <section className="flex min-h-screen justify-center  items-center flex-col bg-[#1f1f1f] text-white">
@@ -65,17 +77,23 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
           </div>
           <button
             type="button"
-            onClick={handleNavigate}
-            className="rounded border border-neutral-700 px-4 py-2 text-sm font-semibold transition hover:border-neutral-500 hover:cursor-pointer"
+            onClick={handleProfile}
+            className={`rounded border px-4 py-2 text-sm font-semibold transition cursor-pointer ${
+              atProfile
+                ? "border-purple-500 bg-neutral-800 hover:border-purple-400"
+                : "border-neutral-700 hover:border-neutral-500"
+            }`}
           >
-            {atProfile ? "Jogo" : "Perfil"}
+            Perfil
           </button>
-          
+
           <button
             type="button"
             onClick={handleLeaderboard}
-            className={`inline-flex items-center gap-1 rounded border border-neutral-700 px-3 py-2 text-sm font-semibold transition hover:border-neutral-500 hover:cursor-pointer ${
-              atLeaderboard ? "bg-neutral-800" : ""
+            className={`inline-flex items-center gap-1 rounded border px-3 py-2 text-sm font-semibold transition cursor-pointer ${
+              atLeaderboard
+                ? "border-purple-500 bg-neutral-800 hover:border-purple-400"
+                : "border-neutral-700 hover:border-neutral-500"
             }`}
           >
             <span className="text-xs">
@@ -88,6 +106,17 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
               </svg>
             </span>
             <span>Ranking</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleHistory}
+            className={`rounded border px-4 py-2 text-sm font-semibold transition cursor-pointer ${
+              atHistory
+                ? "border-purple-500 bg-neutral-800 hover:border-purple-400"
+                : "border-neutral-700 hover:border-neutral-500"
+            }`}
+          >
+            Histórico
           </button>
 
           <button
