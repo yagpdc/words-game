@@ -2,6 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth/use-auth.hook";
 import type { ReactNode } from "react";
 import { AiOutlineFire } from "react-icons/ai";
+import AvatarPreview from "../components/AvatarPreview";
+import { normalizeAvatarConfig } from "../utils/avatar";
 
 type AuthenticatedLayoutProps = {
   children: ReactNode;
@@ -11,6 +13,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const avatarConfig = normalizeAvatarConfig(user?.config);
 
   const atProfile = location.pathname === "/profile";
   const atLeaderboard = location.pathname === "/leaderboard";
@@ -59,7 +62,15 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
   return (
     <section className="flex min-h-screen justify-center  items-center flex-col bg-[#1f1f1f] text-white">
       <header className="flex items-center w-3/4 justify-between border-b border-neutral-800 px-6 py-4">
-        <div className="flex  gap-2 text-left">
+        <div className="flex items-center gap-3 text-left">
+          <AvatarPreview
+            frogType={avatarConfig.frogType}
+            hat={avatarConfig.hat}
+            body={avatarConfig.body}
+            background={avatarConfig.background}
+            size={56}
+            className="rounded-xl border border-neutral-800 shadow-[0_0_15px_rgba(147,51,234,0.25)]"
+          />
           <div>
             <p className="text-xs uppercase tracking-wide text-neutral-500">
               Jogador atual

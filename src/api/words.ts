@@ -12,6 +12,7 @@ export const WORDS_API_BASE_URL = `${API_ORIGIN}/words`;
 
 export const WORDS_ENDPOINTS = {
   profile: `${WORDS_API_BASE_URL}/profile`,
+  profileAvatar: `${WORDS_API_BASE_URL}/profile/avatar`,
   history: `${WORDS_API_BASE_URL}/history`,
   ranking: `${WORDS_API_BASE_URL}/ranking`,
   puzzles: `${WORDS_API_BASE_URL}/puzzles`,

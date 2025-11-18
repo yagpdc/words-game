@@ -6,3 +6,4 @@ export * from "./use-words-puzzles";
 export * from "./use-create-words-puzzle";
 export * from "./use-random-infinite-word";
 export * from "./use-infinite-words";
+export * from "./use-update-avatar-config";
