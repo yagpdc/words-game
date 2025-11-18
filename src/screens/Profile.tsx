@@ -255,7 +255,7 @@ const Profile = () => {
                         setBackground(option.id);
                       }}
                       disabled={!allowsAccessories}
-                      className={`h-10 w-10 rounded-lg border transition ${
+                      className={`h-10 w-10 cursor-pointer rounded-lg border transition ${
                         isSelected
                           ? "border-purple-500 shadow-[0_0_10px_rgba(147,51,234,0.5)]"
                           : allowsAccessories
@@ -321,11 +321,13 @@ const Profile = () => {
               {activeTab === "types"
                 ? frogs.map((option) => {
                     const isSelected = option.id === frogType;
+                    const isLocked = option.id === "frogo-minion";
                     return (
                       <button
                         key={option.id}
                         type="button"
                         onClick={() => {
+                          if (isLocked) return;
                           setFrogType(option.id);
                           if (option.allowAccessories === false) {
                             setHat(null);
@@ -333,10 +335,13 @@ const Profile = () => {
                             setBackground(DEFAULT_AVATAR_BACKGROUND_ID);
                           }
                         }}
+                        disabled={isLocked}
                         className={`flex flex-col items-center rounded-2xl border p-2 transition ${
-                          isSelected
-                            ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
-                            : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
+                          isLocked
+                            ? "border-neutral-900 text-neutral-600 cursor-not-allowed"
+                            : isSelected
+                              ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
+                              : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
                         }`}
                         title={option.label}
                       >
@@ -348,6 +353,11 @@ const Profile = () => {
                             loading="lazy"
                           />
                         </div>
+                        {isLocked ? (
+                          <span className="text-[10px] uppercase tracking-wide text-neutral-500">
+                            Em breve
+                          </span>
+                        ) : null}
                       </button>
                     );
                   })

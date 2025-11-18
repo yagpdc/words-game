@@ -2,28 +2,28 @@ export type AvatarHatId = string | null;
 export type AvatarBodyId = string | null;
 export type AvatarBackgroundId = string;
 
-export const FROG_OPTIONS = [
+export const FROG_OPTIONS: { id: string; label: string; allowAccessories?: boolean }[] = [
   { id: "frogo", label: "Frogo Clássico", allowAccessories: true },
   { id: "frogo-minion", label: "Frogo Minion", allowAccessories: false },
   { id: "frogo-piriguete", label: "Frogo Piriguete", allowAccessories: true },
-] as const;
+];
 
-export const HAT_OPTIONS = [
+export const HAT_OPTIONS: { id: string | null; label: string }[] = [
   { id: null, label: "Sem chapéu" },
   { id: "hat_01", label: "Cartola" },
-  { id: "hat_02", label: "Bobora" },
+  { id: "hat_02", label: "Abóbora" },
   { id: "hat_03", label: "Maçã" },
   { id: "hat_04", label: "Construtor" },
   { id: "hat_05", label: "Bruxinha" },
-] as const;
+];
 
-export const BODY_OPTIONS = [
+export const BODY_OPTIONS: { id: string | null; label: string }[] = [
   { id: null, label: "Sem roupa" },
   { id: "body_01", label: "Bruxinha" },
   { id: "body_02", label: "Sailor moon" },
-] as const;
+];
 
-export const BACKGROUND_OPTIONS = [
+export const BACKGROUND_OPTIONS: { id: string; label: string; gradient: [string, string] }[] = [
   { id: "twilight", label: "Twilight", gradient: ["#2b1f33", "#0b0812"] },
   { id: "sunset", label: "Sunset", gradient: ["#402218", "#1b0b06"] },
   { id: "ocean", label: "Ocean", gradient: ["#0f1a2b", "#02070f"] },
@@ -32,7 +32,7 @@ export const BACKGROUND_OPTIONS = [
   { id: "cyber", label: "Cyber", gradient: ["#111827", "#0f172a"] },
   { id: "desert", label: "Desert", gradient: ["#3a1c0f", "#120806"] },
   { id: "spring", label: "Spring", gradient: ["#1b2a1b", "#091106"] },
-] as const;
+];
 
 export const DEFAULT_AVATAR_TYPE_ID = FROG_OPTIONS[0]?.id ?? "frogo";
 export const DEFAULT_AVATAR_HAT_ID: AvatarHatId = null;
