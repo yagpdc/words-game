@@ -3,6 +3,8 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth/use-auth.hook";
 import { useWordsRankingQuery } from "../hooks/words/use-words-ranking";
+import AvatarPreview from "../components/AvatarPreview";
+import { normalizeAvatarConfig } from "../utils/avatar";
 import { FaCrown } from "react-icons/fa";
 
 const Leaderboard = () => {
@@ -85,6 +87,9 @@ const Leaderboard = () => {
           <tbody>
             {ranking.map((item, index) => {
               const isCurrent = item.id === currentUserId;
+              const avatarConfig = normalizeAvatarConfig({
+                avatar: item.avatar ?? {},
+              });
 
               return (
                 <tr
@@ -96,17 +101,27 @@ const Leaderboard = () => {
                   }`}
                 >
                   <td className="px-5 py-2">
-                    <span className="flex items-center gap-2 truncate">
-                      {index === 0 ? (
-                        <FaCrown className="text-yellow-500" />
-                      ) : null}
-                      {item.name}
-                      {isCurrent ? (
-                        <span className="ml-2 rounded bg-amber-500/10 px-2 py-px text-[10px] font-semibold uppercase text-amber-300">
-                          você
-                        </span>
-                      ) : null}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <AvatarPreview
+                        frogType={avatarConfig.frogType}
+                        hat={avatarConfig.hat}
+                        body={avatarConfig.body}
+                        background={avatarConfig.background}
+                        size={42}
+                        className="border border-neutral-800"
+                      />
+                      <div className="flex items-center gap-2 truncate">
+                        <span>{item.name}</span>
+                        {index === 0 ? (
+                          <FaCrown className="text-yellow-500 text-xs" />
+                        ) : null}
+                        {isCurrent ? (
+                          <span className="ml-1 rounded bg-amber-500/10 px-2 py-px text-[10px] font-semibold uppercase text-amber-300">
+                            você
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-5 py-2 text-center text-xs text-neutral-500">
                     {index + 1}

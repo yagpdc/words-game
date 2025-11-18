@@ -1,4 +1,5 @@
 import type { User } from "../contexts/auth-context";
+import type { AvatarConfig } from "./avatar";
 
 export type WordsHistoryStatus = "won" | "lost" | "abandoned" | "in_progress";
 
@@ -147,6 +148,7 @@ export type WordsRankingItem = {
   name: string;
   streak: number;
   score: number;
+  avatar?: AvatarConfig;
 };
 
 export type InfiniteRandomWordResponse = {

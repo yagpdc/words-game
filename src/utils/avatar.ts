@@ -65,8 +65,8 @@ export const normalizeAvatarConfig = (
 
   return {
     frogType: coerceId(rawType, DEFAULT_AVATAR_TYPE_ID),
-    hat: (coerceNullable(rawHat) as AvatarHatId) ?? DEFAULT_AVATAR_HAT_ID,
-    body: (coerceNullable(rawBody) as AvatarBodyId) ?? DEFAULT_AVATAR_BODY_ID,
+    hat: coerceNullable(rawHat) as AvatarHatId,
+    body: coerceNullable(rawBody) as AvatarBodyId,
     background: coerceId(rawBackground, DEFAULT_AVATAR_BACKGROUND_ID),
   };
 };

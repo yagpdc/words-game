@@ -2,7 +2,11 @@ export type AvatarHatId = string | null;
 export type AvatarBodyId = string | null;
 export type AvatarBackgroundId = string;
 
-export const FROG_OPTIONS: { id: string; label: string; allowAccessories?: boolean }[] = [
+export const FROG_OPTIONS: {
+  id: string;
+  label: string;
+  allowAccessories?: boolean;
+}[] = [
   { id: "frogo", label: "Frogo Clássico", allowAccessories: true },
   { id: "frogo-minion", label: "Frogo Minion", allowAccessories: false },
   { id: "frogo-piriguete", label: "Frogo Piriguete", allowAccessories: true },
@@ -23,7 +27,11 @@ export const BODY_OPTIONS: { id: string | null; label: string }[] = [
   { id: "body_02", label: "Sailor moon" },
 ];
 
-export const BACKGROUND_OPTIONS: { id: string; label: string; gradient: [string, string] }[] = [
+export const BACKGROUND_OPTIONS: {
+  id: string;
+  label: string;
+  gradient: [string, string];
+}[] = [
   { id: "twilight", label: "Twilight", gradient: ["#2b1f33", "#0b0812"] },
   { id: "sunset", label: "Sunset", gradient: ["#402218", "#1b0b06"] },
   { id: "ocean", label: "Ocean", gradient: ["#0f1a2b", "#02070f"] },
@@ -40,12 +48,39 @@ export const DEFAULT_AVATAR_BODY_ID: AvatarBodyId = null;
 export const DEFAULT_AVATAR_BACKGROUND_ID: AvatarBackgroundId =
   BACKGROUND_OPTIONS[0]?.id ?? "twilight";
 
+const normalizeFrogAssetId = (id?: string) => {
+  if (!id) {
+    return DEFAULT_AVATAR_TYPE_ID;
+  }
+
+  const normalized = id.replace(/_/g, "-");
+
+  const exists = FROG_OPTIONS.some((option) => option.id === normalized);
+  return exists ? normalized : DEFAULT_AVATAR_TYPE_ID;
+};
+
+const normalizeHatId = (id?: string | null) => {
+  if (!id) return null;
+  const exists = HAT_OPTIONS.some((option) => option.id === id);
+  return exists ? id : null;
+};
+
+const normalizeBodyId = (id?: string | null) => {
+  if (!id) return null;
+  const exists = BODY_OPTIONS.some((option) => option.id === id);
+  return exists ? id : null;
+};
+
 export const getFrogAsset = (id?: string) =>
-  `/avatar/type/${id ?? DEFAULT_AVATAR_TYPE_ID}.png`;
-export const getHatAsset = (id?: string | null) =>
-  id ? `/avatar/hats/${id}.png` : undefined;
-export const getBodyAsset = (id?: string | null) =>
-  id ? `/avatar/bodies/${id}.png` : undefined;
+  `/avatar/type/${normalizeFrogAssetId(id)}.png`;
+export const getHatAsset = (id?: string | null) => {
+  const resolved = normalizeHatId(id);
+  return resolved ? `/avatar/hats/${resolved}.png` : undefined;
+};
+export const getBodyAsset = (id?: string | null) => {
+  const resolved = normalizeBodyId(id);
+  return resolved ? `/avatar/bodies/${resolved}.png` : undefined;
+};
 
 export type HatDisplay = {
   widthPercent: number;
