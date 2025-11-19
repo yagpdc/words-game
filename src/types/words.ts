@@ -151,13 +151,63 @@ export type WordsRankingItem = {
   avatar?: AvatarConfig;
 };
 
-export type InfiniteRandomWordResponse = {
-  word: string;
+export type WordsInfiniteRunStatus = "active" | "completed" | "failed";
+
+export type WordsInfiniteHistoryResult =
+  | "won"
+  | "lost"
+  | "pending"
+  | "in_progress"
+  | "active";
+
+export type WordsInfiniteGuess = {
+  guessWord: string;
+  pattern: string;
+  attemptNumber?: number;
+  createdAt?: string;
 };
 
-export type InfiniteWordsQueryParams = {
-  page?: number;
-  pageSize?: number;
+export type WordsInfiniteHistoryEntry = {
+  order?: number;
+  word?: string;
+  result: WordsInfiniteHistoryResult;
+  attemptsUsed: number;
+  guesses?: WordsInfiniteGuess[];
 };
 
-export type InfiniteWordsResponse = PaginatedResponse<string>;
+export type WordsInfiniteRunSummary = {
+  score: number;
+  record: number;
+  wordsPlayed: number;
+  wordsRemaining: number;
+};
+
+export type WordsInfiniteNextWord = {
+  length: number;
+  letters?: string[];
+  remainingAttempts?: number;
+};
+
+export type WordsInfiniteRunState = {
+  runId: string;
+  status: WordsInfiniteRunStatus;
+  currentScore: number;
+  record: number;
+  remainingWords: number;
+  wordsRemaining?: number;
+  wordsCompleted?: number;
+  wordsPlayed?: number;
+  totalWords?: number;
+  attemptsUsed: number;
+  maxAttempts: number;
+  nextWord: WordsInfiniteNextWord | null;
+  history: WordsInfiniteHistoryEntry[];
+  guesses?: WordsInfiniteGuess[];
+  summary?: WordsInfiniteRunSummary;
+};
+
+export type WordsInfiniteGuessPayload = {
+  guessWord: string;
+};
+
+export type WordsInfiniteRunResponse = WordsInfiniteRunState;

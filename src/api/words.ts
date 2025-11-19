@@ -17,6 +17,7 @@ export const WORDS_ENDPOINTS = {
   ranking: `${WORDS_API_BASE_URL}/ranking`,
   puzzles: `${WORDS_API_BASE_URL}/puzzles`,
   dailyPuzzle: `${WORDS_API_BASE_URL}/puzzles/daily`,
-  infiniteRandom: `${WORDS_API_BASE_URL}/infinite/random`,
-  infiniteWords: `${WORDS_API_BASE_URL}/infinite/words`,
+  infiniteRun: `${WORDS_API_BASE_URL}/infinite/run`,
+  infiniteRunGuess: `${WORDS_API_BASE_URL}/infinite/run/guess`,
+  infiniteRunAbandon: `${WORDS_API_BASE_URL}/infinite/run/abandon`,
 } as const;

@@ -6,6 +6,9 @@ export type User = {
   streak: number;
   score: number;
   config: Record<string, unknown>;
+  infiniteRecord?: number;
+  infiniteCurrentScore?: number;
+  infiniteStatus?: "idle" | "active" | "failed" | "completed";
   createdAt: string;
   updatedAt: string;
 };

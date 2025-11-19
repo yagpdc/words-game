@@ -5,6 +5,7 @@ const CARD_TYPES: GameCardTypes[] = ["daily", "infinity", "quartet", "double"];
 
 const CARD_ROUTES: Partial<Record<GameCardTypes, string>> = {
   daily: "/game/daily",
+  infinity: "/game/infinity",
 };
 
 const GameLayout = () => {
