@@ -568,9 +568,9 @@ const InfinityGame = () => {
           </h1>
         </header>
         <p className="max-w-md text-center text-sm text-slate-300">
-          Inicie uma run para receber palavras aleatï¿½ï¿½rias e tente acertar o
-          mï¿½ï¿½ximo possï¿½ï¿½vel com apenas 4 tentativas. Ao errar, vocÇ¦
-          perde toda a sequï¿½ï¿½ncia.
+          Inicie uma run para receber palavras aleatorias e tente acertar o
+          minimo possivel com apenas 4 tentativas. Ao errar, voce perde toda a
+          sequencia.
         </p>
         <button
           type="button"
@@ -734,7 +734,9 @@ const InfinityGame = () => {
 
       {completedHistory.length ? (
         <section className="rounded-2xl border border-slate-800 bg-[#120D18] p-4">
-          <h2 className="text-lg font-semibold text-white">Palavras vencidas</h2>
+          <h2 className="text-lg font-semibold text-white">
+            Palavras vencidas
+          </h2>
           <p className="text-xs text-slate-400">
             Nenhuma palavra se repete. Veja o que você já conquistou nesta run.
           </p>
@@ -752,23 +754,31 @@ const InfinityGame = () => {
                     <span
                       className={`mt-1 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${getHistoryColorClass(entry.result)}`}
                     >
-                      {formatResultLabel(entry.result)} • {entry.attemptsUsed} tentativas
+                      {formatResultLabel(entry.result)} • {entry.attemptsUsed}{" "}
+                      tentativas
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">Ordem {entry.order ?? "-"}</p>
+                  <p className="text-xs text-slate-400">
+                    Ordem {entry.order ?? "-"}
+                  </p>
                 </div>
                 {entry.guesses?.length ? (
                   <div className="mt-3 flex flex-col gap-2">
                     {entry.guesses.map((guess, guessIndex) => (
-                      <div key={`${guess.guessWord}-${guessIndex}`} className="flex gap-2">
-                        {buildRowFromGuess(guess, columns).map((cell, cellIndex) => (
-                          <div
-                            key={`${guess.guessWord}-${guessIndex}-${cellIndex}`}
-                            className={`flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold uppercase ${CELL_STYLES[cell.status]}`}
-                          >
-                            {cell.value}
-                          </div>
-                        ))}
+                      <div
+                        key={`${guess.guessWord}-${guessIndex}`}
+                        className="flex gap-2"
+                      >
+                        {buildRowFromGuess(guess, columns).map(
+                          (cell, cellIndex) => (
+                            <div
+                              key={`${guess.guessWord}-${guessIndex}-${cellIndex}`}
+                              className={`flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold uppercase ${CELL_STYLES[cell.status]}`}
+                            >
+                              {cell.value}
+                            </div>
+                          ),
+                        )}
                       </div>
                     ))}
                   </div>
@@ -805,7 +815,9 @@ const InfinityGame = () => {
               disabled={startRunMutation.isPending}
               className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {startRunMutation.isPending ? "Reiniciando..." : "Jogar novamente"}
+              {startRunMutation.isPending
+                ? "Reiniciando..."
+                : "Jogar novamente"}
             </button>
           </div>
         </section>
@@ -831,20 +843,36 @@ const InfinityGame = () => {
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-4">
               <div className="rounded-xl border border-slate-700 bg-[#140B1C] p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Score</p>
-                <p className="text-2xl font-semibold text-white">{runSummary.score}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">
+                  Score
+                </p>
+                <p className="text-2xl font-semibold text-white">
+                  {runSummary.score}
+                </p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-[#140B1C] p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Recorde</p>
-                <p className="text-2xl font-semibold text-emerald-300">{runSummary.record}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">
+                  Recorde
+                </p>
+                <p className="text-2xl font-semibold text-emerald-300">
+                  {runSummary.record}
+                </p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-[#140B1C] p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Palavras jogadas</p>
-                <p className="text-2xl font-semibold text-white">{runSummary.wordsPlayed}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">
+                  Palavras jogadas
+                </p>
+                <p className="text-2xl font-semibold text-white">
+                  {runSummary.wordsPlayed}
+                </p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-[#140B1C] p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Restantes</p>
-                <p className="text-2xl font-semibold text-white">{runSummary.wordsRemaining}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">
+                  Restantes
+                </p>
+                <p className="text-2xl font-semibold text-white">
+                  {runSummary.wordsRemaining}
+                </p>
               </div>
             </div>
             <div className="mt-6">
@@ -866,8 +894,8 @@ const InfinityGame = () => {
                           <span
                             className={`mt-1 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${getHistoryColorClass(entry.result)}`}
                           >
-                            {formatResultLabel(entry.result)} • {entry.attemptsUsed}{" "}
-                            tentativas
+                            {formatResultLabel(entry.result)} •{" "}
+                            {entry.attemptsUsed} tentativas
                           </span>
                         </div>
                         <p className="text-xs text-slate-400">
@@ -881,14 +909,16 @@ const InfinityGame = () => {
                               key={`${entry.word ?? "word"}-${guessIndex}-modal`}
                               className="flex gap-2"
                             >
-                              {buildRowFromGuess(guess, columns).map((cell, cellIndex) => (
-                                <div
-                                  key={`${entry.word ?? "word"}-${guessIndex}-${cellIndex}-modal`}
-                                  className={`flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold uppercase ${CELL_STYLES[cell.status]}`}
-                                >
-                                  {cell.value}
-                                </div>
-                              ))}
+                              {buildRowFromGuess(guess, columns).map(
+                                (cell, cellIndex) => (
+                                  <div
+                                    key={`${entry.word ?? "word"}-${guessIndex}-${cellIndex}-modal`}
+                                    className={`flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold uppercase ${CELL_STYLES[cell.status]}`}
+                                  >
+                                    {cell.value}
+                                  </div>
+                                ),
+                              )}
                             </div>
                           ))}
                         </div>
@@ -919,7 +949,9 @@ const InfinityGame = () => {
                 disabled={startRunMutation.isPending}
                 className="flex-1 rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {startRunMutation.isPending ? "Reiniciando..." : "Jogar novamente"}
+                {startRunMutation.isPending
+                  ? "Reiniciando..."
+                  : "Jogar novamente"}
               </button>
             </div>
           </div>
