@@ -100,7 +100,7 @@ const formatResultLabel = (
   result: WordsInfiniteHistoryEntry["result"],
 ): string => {
   if (result === "won") {
-    return "VitÃ³ria";
+    return "Vitória";
   }
   if (result === "lost") {
     return "Derrota";
@@ -151,10 +151,14 @@ const InfinityGame = () => {
   const [isRowShaking, setIsRowShaking] = useState(false);
   const [highlightEmptyCells, setHighlightEmptyCells] = useState(false);
   const [lockedPositions, setLockedPositions] = useState<Set<number>>(new Set());
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const shakeTimeout = useRef<ReturnType<typeof window.setTimeout> | null>(
     null,
   );
   const highlightTimeout = useRef<ReturnType<typeof window.setTimeout> | null>(
+    null,
+  );
+  const transitionTimeout = useRef<ReturnType<typeof window.setTimeout> | null>(
     null,
   );
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
@@ -168,6 +172,9 @@ const InfinityGame = () => {
       }
       if (highlightTimeout.current) {
         window.clearTimeout(highlightTimeout.current);
+      }
+      if (transitionTimeout.current) {
+        window.clearTimeout(transitionTimeout.current);
       }
     };
   }, []);
@@ -312,6 +319,15 @@ const InfinityGame = () => {
       previousGuessCountRef.current > 0 &&
       isRunActive
     ) {
+      // Usuário acertou e passou para próxima palavra - dispara animação
+      setIsTransitioning(true);
+      if (transitionTimeout.current) {
+        window.clearTimeout(transitionTimeout.current);
+      }
+      transitionTimeout.current = window.setTimeout(() => {
+        setIsTransitioning(false);
+        transitionTimeout.current = null;
+      }, 800);
       resetDraft();
     }
     previousGuessCountRef.current = currentGuessCount;
@@ -778,7 +794,9 @@ const InfinityGame = () => {
         </div>
       </header>
       <div className="flex flex-col items-center gap-4">
-        <div className="flex flex-col gap-2">
+        <div className={`flex flex-col gap-2 transition-all duration-700 ease-out ${
+          isTransitioning ? "word-transition-slide" : ""
+        }`}>
           {boardRows.map((row, rowIndex) => {
             const isCurrentRow =
               isRunActive &&
@@ -797,6 +815,14 @@ const InfinityGame = () => {
                       ? "opacity-100"
                       : "opacity-90"
                 } ${shakingRow ? "shake-row" : ""}`}
+                style={
+                  isTransitioning
+                    ? {
+                        animation: `word-transition-slide 0.8s cubic-bezier(0.4, 0, 0.2, 1)`,
+                        animationDelay: `${rowIndex * 50}ms`,
+                      }
+                    : undefined
+                }
               >
                 {row.map((cell, columnIndex) => {
                   const isSelected =
