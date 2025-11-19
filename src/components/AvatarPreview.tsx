@@ -46,8 +46,39 @@ const AvatarPreview = ({
   const frogImage = getFrogAsset(frogType);
   const hatImage = hat ? getHatAsset(hat) : undefined;
   const bodyImage = body ? getBodyAsset(body) : undefined;
-  const hatDisplay = (hat ? HAT_DISPLAY[hat] : undefined) ?? DEFAULT_HAT_DISPLAY;
-  const bodyDisplay = (body ? BODY_DISPLAY[body] : undefined) ?? DEFAULT_BODY_DISPLAY;
+  const hatDisplay =
+    (hat ? HAT_DISPLAY[hat] : undefined) ?? DEFAULT_HAT_DISPLAY;
+  const bodyDisplay =
+    (body ? BODY_DISPLAY[body] : undefined) ?? DEFAULT_BODY_DISPLAY;
+  const renderBodyAboveHat = Boolean(body && bodyDisplay.renderAboveHat);
+  const hatElement = hatImage ? (
+    <img
+      src={hatImage}
+      alt="Chapéu do avatar"
+      className="pointer-events-none absolute object-contain"
+      style={{
+        width: `${hatDisplay.widthPercent}%`,
+        top: `${hatDisplay.topPercent}%`,
+        left: "50%",
+        transform: `translateX(-50%) translateX(${hatDisplay.translateXPercent ?? 0}%) scale(${hatDisplay.scale ?? 1})`,
+      }}
+      draggable={false}
+    />
+  ) : null;
+  const bodyElement = bodyImage ? (
+    <img
+      src={bodyImage}
+      alt="Roupa do avatar"
+      className="pointer-events-none absolute object-contain"
+      style={{
+        width: `${bodyDisplay.widthPercent}%`,
+        top: `${bodyDisplay.topPercent}%`,
+        left: "50%",
+        transform: `translate(-50%, -50%) translateX(${bodyDisplay.translateXPercent ?? 0}%)`,
+      }}
+      draggable={false}
+    />
+  ) : null;
   const gradient =
     BACKGROUND_GRADIENTS[background ?? DEFAULT_AVATAR_BACKGROUND_ID] ??
     BACKGROUND_GRADIENTS[DEFAULT_AVATAR_BACKGROUND_ID];
@@ -76,34 +107,8 @@ const AvatarPreview = ({
           draggable={false}
         />
       ) : null}
-      {bodyImage ? (
-        <img
-          src={bodyImage}
-          alt="Roupa do avatar"
-          className="pointer-events-none absolute object-contain"
-          style={{
-            width: `${bodyDisplay.widthPercent}%`,
-            top: `${bodyDisplay.topPercent}%`,
-            left: "50%",
-            transform: `translate(-50%, -50%) translateX(${bodyDisplay.translateXPercent ?? 0}%)`,
-          }}
-          draggable={false}
-        />
-      ) : null}
-      {hatImage ? (
-        <img
-          src={hatImage}
-          alt="Chapéu do avatar"
-          className="pointer-events-none absolute object-contain"
-          style={{
-            width: `${hatDisplay.widthPercent}%`,
-            top: `${hatDisplay.topPercent}%`,
-            left: "50%",
-            transform: `translateX(-50%) translateX(${hatDisplay.translateXPercent ?? 0}%) scale(${hatDisplay.scale ?? 1})`,
-          }}
-          draggable={false}
-        />
-      ) : null}
+      {renderBodyAboveHat ? hatElement : bodyElement}
+      {renderBodyAboveHat ? bodyElement : hatElement}
     </div>
   );
 };
