@@ -22,7 +22,7 @@ type CellState = {
 };
 
 const DEFAULT_COLUMNS = 5;
-const DEFAULT_MAX_ATTEMPTS = 4;
+const DEFAULT_MAX_ATTEMPTS = 5;
 const DEFAULT_STATUS: LetterStatus = "default";
 
 const PATTERN_STATUS_MAP: Record<string, LetterStatus> = {
@@ -82,15 +82,6 @@ const buildRowFromDraft = (letters: string[], columns: number): CellState[] =>
     value: letters[index]?.toUpperCase() ?? "",
     status: DEFAULT_STATUS,
   }));
-
-const getNextEmptyAfter = (letters: string[], fromIndex: number) => {
-  for (let column = fromIndex + 1; column < letters.length; column += 1) {
-    if (!letters[column]) {
-      return column;
-    }
-  }
-  return null;
-};
 
 const getPreviousFilledIndex = (letters: string[], fromIndex: number) => {
   for (
@@ -159,6 +150,7 @@ const InfinityGame = () => {
   const [feedback, setFeedback] = useState("");
   const [isRowShaking, setIsRowShaking] = useState(false);
   const [highlightEmptyCells, setHighlightEmptyCells] = useState(false);
+  const [lockedPositions, setLockedPositions] = useState<Set<number>>(new Set());
   const shakeTimeout = useRef<ReturnType<typeof window.setTimeout> | null>(
     null,
   );
@@ -253,10 +245,46 @@ const InfinityGame = () => {
   const isInputLocked =
     !isRunActive || isMutationRunning || isLoading || isFetching;
 
+  const getLockedPositions = useCallback(() => {
+    const locked = new Set<number>();
+    const lockedLetters: string[] = Array(columns).fill("");
+
+    boardGuesses.forEach((guess) => {
+      const pattern = guess.pattern ?? "";
+      const guessWord = guess.guessWord ?? "";
+
+      pattern.split("").forEach((patternChar, index) => {
+        if (patternChar === "2" && index < columns) {
+          locked.add(index);
+          lockedLetters[index] = guessWord[index]?.toUpperCase() ?? "";
+        }
+      });
+    });
+
+    return { locked, lockedLetters };
+  }, [boardGuesses, columns]);
+
   const resetDraft = useCallback(() => {
-    setDraftLetters(buildDraftLetters(columns));
-    setSelectedCol(0);
-  }, [columns]);
+    const { locked, lockedLetters } = getLockedPositions();
+    const newDraft = buildDraftLetters(columns);
+
+    // Preenche as posições travadas
+    locked.forEach((pos) => {
+      if (lockedLetters[pos]) {
+        newDraft[pos] = lockedLetters[pos];
+      }
+    });
+
+    setDraftLetters(newDraft);
+    setLockedPositions(locked);
+
+    // Seleciona a primeira posição não travada
+    let firstUnlocked = 0;
+    while (firstUnlocked < columns && locked.has(firstUnlocked)) {
+      firstUnlocked++;
+    }
+    setSelectedCol(firstUnlocked < columns ? firstUnlocked : 0);
+  }, [columns, getLockedPositions]);
 
   useEffect(() => {
     if (!run) {
@@ -407,11 +435,37 @@ const InfinityGame = () => {
     const upper = letter.toUpperCase();
     const insertionColumn = Math.min(Math.max(selectedCol, 0), columns - 1);
 
+    // Não permite editar posições travadas
+    if (lockedPositions.has(insertionColumn)) {
+      // Pula para a próxima posição não travada
+      let nextCol = insertionColumn + 1;
+      while (nextCol < columns && lockedPositions.has(nextCol)) {
+        nextCol++;
+      }
+      if (nextCol < columns) {
+        setSelectedCol(nextCol);
+      }
+      return;
+    }
+
     setDraftLetters((previous) => {
       const next = [...previous];
       next[insertionColumn] = upper;
-      const nextEmpty = getNextEmptyAfter(next, insertionColumn);
-      setSelectedCol(nextEmpty ?? insertionColumn);
+
+      // Procura a próxima posição vazia que não esteja travada
+      let nextCol = insertionColumn + 1;
+      while (nextCol < columns) {
+        if (!lockedPositions.has(nextCol) && !next[nextCol]) {
+          setSelectedCol(nextCol);
+          return next;
+        }
+        if (!lockedPositions.has(nextCol)) {
+          break;
+        }
+        nextCol++;
+      }
+
+      setSelectedCol(nextCol < columns ? nextCol : insertionColumn);
       return next;
     });
     setFeedback("");
@@ -430,6 +484,19 @@ const InfinityGame = () => {
         : getPreviousFilledIndex(next, selectedCol - 1);
 
       if (targetIndex === null) {
+        return next;
+      }
+
+      // Não permite deletar posições travadas
+      if (lockedPositions.has(targetIndex)) {
+        // Move para a posição anterior não travada
+        let prevCol = targetIndex - 1;
+        while (prevCol >= 0 && lockedPositions.has(prevCol)) {
+          prevCol--;
+        }
+        if (prevCol >= 0) {
+          setSelectedCol(prevCol);
+        }
         return next;
       }
 
@@ -569,7 +636,7 @@ const InfinityGame = () => {
         </header>
         <p className="max-w-md text-center text-sm text-slate-300">
           Inicie uma run para receber palavras aleatorias e tente acertar o
-          minimo possivel com apenas 4 tentativas. Ao errar, voce perde toda a
+          minimo possivel com apenas 5 tentativas. Ao errar, voce perde toda a
           sequencia.
         </p>
         <button
@@ -601,7 +668,7 @@ const InfinityGame = () => {
             </p>
             <h1 className="text-3xl font-semibold">Vida longa à run</h1>
             <p className="text-sm text-slate-300">
-              Acerte a palavra em até 4 tentativas para seguir pontuando e
+              Acerte a palavra em até 5 tentativas para seguir pontuando e
               buscar o recorde.
             </p>
           </div>
@@ -698,14 +765,15 @@ const InfinityGame = () => {
                     isCurrentRow && columnIndex === selectedCol && isRunActive;
                   const shouldHighlight =
                     highlightEmptyCells && isCurrentRow && !cell.value;
+                  const isLocked = isCurrentRow && lockedPositions.has(columnIndex);
                   return (
                     <button
                       type="button"
                       key={`cell-${rowIndex}-${columnIndex}`}
-                      disabled={!isCurrentRow}
+                      disabled={!isCurrentRow || isLocked}
                       onClick={() => handleCellClick(rowIndex, columnIndex)}
                       className={`flex h-14 w-14 items-center justify-center rounded-md text-2xl font-semibold uppercase transition ${
-                        CELL_STYLES[cell.status]
+                        isLocked ? "bg-emerald-600/80 text-white border-2 border-emerald-400" : CELL_STYLES[cell.status]
                       } ${
                         isSelected
                           ? "ring-2 ring-[#F2B94B] shadow-[0_0_8px_rgba(242,185,75,0.55)]"
@@ -713,7 +781,7 @@ const InfinityGame = () => {
                       } ${
                         shakingRow ? "border-2 border-red-500" : ""
                       } ${shouldHighlight ? "cell-highlight" : ""} ${
-                        isCurrentRow ? "cursor-pointer" : "cursor-default"
+                        isCurrentRow && !isLocked ? "cursor-pointer" : "cursor-not-allowed"
                       }`}
                     >
                       {cell.value}
