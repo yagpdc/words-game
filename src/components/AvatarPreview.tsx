@@ -11,6 +11,7 @@ import type {
   AvatarHatId,
   AvatarBodyId,
   AvatarBackgroundId,
+  BodyDisplay,
 } from "../constants/avatar-options";
 
 const DEFAULT_HAT_DISPLAY = {
@@ -20,7 +21,7 @@ const DEFAULT_HAT_DISPLAY = {
   scale: 1,
 };
 
-const DEFAULT_BODY_DISPLAY = {
+const DEFAULT_BODY_DISPLAY: BodyDisplay = {
   widthPercent: 60,
   topPercent: 58,
   translateXPercent: 0,
