@@ -53,6 +53,18 @@ const GameKeyboard = ({
         return;
       }
 
+      if (key === "ArrowLeft") {
+        event.preventDefault();
+        onKeyPress("ARROWLEFT");
+        return;
+      }
+
+      if (key === "ArrowRight") {
+        event.preventDefault();
+        onKeyPress("ARROWRIGHT");
+        return;
+      }
+
       if (/^[a-zA-Z]$/.test(key)) {
         event.preventDefault();
         onKeyPress(key.toUpperCase());

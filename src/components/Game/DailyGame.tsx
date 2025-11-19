@@ -574,11 +574,35 @@ const DailyGame = () => {
     setIsResultModalOpen(false);
   };
 
+  const handleArrowLeft = () => {
+    if (isInputLocked) {
+      return;
+    }
+    const newCol = selectedCol - 1;
+    if (newCol >= 0) {
+      setSelectedCol(newCol);
+    }
+  };
+
+  const handleArrowRight = () => {
+    if (isInputLocked) {
+      return;
+    }
+    const newCol = selectedCol + 1;
+    if (newCol < COLUMNS) {
+      setSelectedCol(newCol);
+    }
+  };
+
   const handleKeyPress = (key: string) => {
     if (key === "ENTER") {
       evaluateGuess();
     } else if (key === "DELETE") {
       handleDelete();
+    } else if (key === "ARROWLEFT") {
+      handleArrowLeft();
+    } else if (key === "ARROWRIGHT") {
+      handleArrowRight();
     } else {
       handleLetter(key);
     }

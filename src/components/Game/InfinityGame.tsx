@@ -532,6 +532,36 @@ const InfinityGame = () => {
     );
   };
 
+  const handleArrowLeft = () => {
+    if (isInputLocked) {
+      return;
+    }
+
+    let newCol = selectedCol - 1;
+    // Pula posições travadas ao navegar para a esquerda
+    while (newCol >= 0 && lockedPositions.has(newCol)) {
+      newCol--;
+    }
+    if (newCol >= 0) {
+      setSelectedCol(newCol);
+    }
+  };
+
+  const handleArrowRight = () => {
+    if (isInputLocked) {
+      return;
+    }
+
+    let newCol = selectedCol + 1;
+    // Pula posições travadas ao navegar para a direita
+    while (newCol < columns && lockedPositions.has(newCol)) {
+      newCol++;
+    }
+    if (newCol < columns) {
+      setSelectedCol(newCol);
+    }
+  };
+
   const handleKeyPress = (key: string) => {
     if (key === "ENTER") {
       handleSubmitGuess();
@@ -539,6 +569,14 @@ const InfinityGame = () => {
     }
     if (key === "DELETE") {
       handleDelete();
+      return;
+    }
+    if (key === "ARROWLEFT") {
+      handleArrowLeft();
+      return;
+    }
+    if (key === "ARROWRIGHT") {
+      handleArrowRight();
       return;
     }
     handleLetter(key);
