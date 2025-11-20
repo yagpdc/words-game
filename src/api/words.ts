@@ -8,7 +8,10 @@ const API_ORIGIN =
     ? PROD_API_URL
     : LOCAL_API_URL);
 
+export const WORDS_API_ORIGIN = API_ORIGIN;
 export const WORDS_API_BASE_URL = `${API_ORIGIN}/words`;
+
+export const WORDS_SOCKET_URL = API_ORIGIN;
 
 export const WORDS_ENDPOINTS = {
   profile: `${WORDS_API_BASE_URL}/profile`,

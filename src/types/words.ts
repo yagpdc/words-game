@@ -152,6 +152,7 @@ export type WordsRankingItem = {
   score: number;
   avatar?: AvatarConfig;
   infiniteRecord?: number;
+  isOnline?: boolean;
 };
 
 export type WordsInfiniteRunStatus = "active" | "completed" | "failed";

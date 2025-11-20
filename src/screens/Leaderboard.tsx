@@ -8,6 +8,7 @@ import { useWordsRankingQuery } from "../hooks/words/use-words-ranking";
 import AvatarPreview from "../components/AvatarPreview";
 import { normalizeAvatarConfig } from "../utils/avatar";
 import { FaCrown } from "react-icons/fa";
+import { useOnlineUsers } from "../hooks/socket/use-online-users";
 
 const Leaderboard = () => {
   const { user, logout } = useAuth();
@@ -17,6 +18,8 @@ const Leaderboard = () => {
   const { data: ranking, isLoading, error, refetch } = useWordsRankingQuery();
 
   const currentUserId = user?.id;
+  const { onlineUsers } = useOnlineUsers();
+  const onlineUsersSet = useMemo(() => new Set(onlineUsers), [onlineUsers]);
 
   useEffect(() => {
     if (!scrollContainerRef.current || !ranking || ranking.length === 0) {
@@ -123,6 +126,7 @@ const Leaderboard = () => {
               const avatarConfig = normalizeAvatarConfig({
                 avatar: item.avatar ?? {},
               });
+              const isOnline = item.isOnline ?? onlineUsersSet.has(item.id);
 
               return (
                 <tr
@@ -144,7 +148,15 @@ const Leaderboard = () => {
                         className="border border-neutral-800"
                       />
                       <div className="flex items-center gap-2 truncate">
-                        <span>{item.name}</span>
+                        <span
+                          className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${
+                            isOnline
+                              ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
+                              : "bg-neutral-600"
+                          }`}
+                          title={isOnline ? "Online" : "Offline"}
+                        />
+                        <span className="truncate">{item.name}</span>
                         {index === 0 ? (
                           <FaCrown className="text-yellow-500 text-xs" />
                         ) : null}
