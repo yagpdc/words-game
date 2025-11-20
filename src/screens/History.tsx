@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useMemo, useState, type ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth/use-auth.hook";
 import { useWordsHistoryQuery } from "../hooks/words/use-words-history";
 import type { WordsHistoryItem, WordsHistoryStatus } from "../types/words";
@@ -152,6 +152,14 @@ const History = () => {
 
   return (
     <section className="flex w-full max-w-5xl flex-col gap-5 text-white">
+      <div className="flex w-full items-center justify-start">
+        <Link
+          to="/game"
+          className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white"
+        >
+          {"\u2190"} Voltar para modos
+        </Link>
+      </div>
       <header className="flex items-center flex-col">
         <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">
           Words · Histórico
@@ -162,6 +170,16 @@ const History = () => {
             {totalItems} partidas registradas
           </span>
         </div>
+        {history?.infiniteRecord !== undefined && history.infiniteRecord > 0 && (
+          <div className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2">
+            <p className="text-xs uppercase tracking-wide text-emerald-400/80">
+              Recorde Modo Infinito
+            </p>
+            <p className="text-2xl font-bold text-emerald-300">
+              {history.infiniteRecord} palavras
+            </p>
+          </div>
+        )}
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-4 text-sm">

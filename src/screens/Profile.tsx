@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   BACKGROUND_OPTIONS,
   BACKGROUND_GRADIENTS,
@@ -45,6 +46,19 @@ const Profile = () => {
       updateUser(updatedUser);
     },
   });
+
+  const [unlockMessage, setUnlockMessage] = useState<string | null>(null);
+
+  const isItemUnlocked = (option: { locked?: boolean; id: string }) => {
+    if (!option.locked) return true;
+
+    // Verifica se é o Minion e se tem a conquista
+    if (option.id === "frogo-minion") {
+      return user?.achievements?.["30_STREAK_INFINITY"] === true;
+    }
+
+    return false;
+  };
 
   const frogs = FROG_OPTIONS;
   const hatsOptions = HAT_OPTIONS;
@@ -169,6 +183,14 @@ const Profile = () => {
   return (
     <section className="flex w-full justify-center">
       <div className="flex w-full max-w-5xl flex-col gap-8 py-10 text-white">
+        <div className="flex w-full items-center justify-start">
+          <Link
+            to="/game"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white"
+          >
+            {"\u2190"} Voltar para modos
+          </Link>
+        </div>
         <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">
@@ -203,7 +225,7 @@ const Profile = () => {
           <section className="rounded-2xl border border-neutral-800 bg-[#0f0b14] p-5">
             <div className="flex flex-col gap-4">
               <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-[#0d0c17]">
-                <div className="absolute inset-0 grid h-full w-full grid-cols-[repeat(10,minmax(0,1fr))] grid-rows-[repeat(10,minmax(0,1fr))] opacity-20">
+                <div className="absolute inset-0 grid h-full w-full grid-cols-10 grid-rows-10 opacity-20">
                   {Array.from({ length: 100 }).map((_, index) => (
                     <div
                       key={`grid-${index}`}
@@ -321,13 +343,17 @@ const Profile = () => {
               {activeTab === "types"
                 ? frogs.map((option) => {
                     const isSelected = option.id === frogType;
-                    const isLocked = option.id === "frogo-minion";
+                    const isLocked = !isItemUnlocked(option);
                     return (
                       <button
                         key={option.id}
                         type="button"
                         onClick={() => {
-                          if (isLocked) return;
+                          if (isLocked) {
+                            setUnlockMessage(option.unlockRequirement || "Item bloqueado");
+                            setTimeout(() => setUnlockMessage(null), 4000);
+                            return;
+                          }
                           setFrogType(option.id);
                           if (option.allowAccessories === false) {
                             setHat(null);
@@ -335,29 +361,33 @@ const Profile = () => {
                             setBackground(DEFAULT_AVATAR_BACKGROUND_ID);
                           }
                         }}
-                        disabled={isLocked}
                         className={`flex flex-col items-center rounded-2xl border p-2 transition ${
                           isLocked
-                            ? "border-neutral-900 text-neutral-600 cursor-not-allowed"
+                            ? "border-neutral-800 opacity-40 cursor-pointer hover:opacity-60"
                             : isSelected
                               ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
                               : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
                         }`}
                         title={option.label}
                       >
-                        <div className="flex h-16 w-full items-center justify-center">
+                        <div className="flex h-16 w-full items-center justify-center relative">
                           <img
                             src={getFrogAsset(option.id)}
                             alt={option.label}
                             className="max-h-full max-w-full object-contain"
                             loading="lazy"
                           />
+                          {isLocked && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded">
+                              <span className="text-2xl">🔒</span>
+                            </div>
+                          )}
                         </div>
-                        {isLocked ? (
-                          <span className="text-[10px] uppercase tracking-wide text-neutral-500">
-                            Em breve
+                        {isLocked && (
+                          <span className="text-[10px] uppercase tracking-wide text-amber-400 mt-1">
+                            Bloqueado
                           </span>
-                        ) : null}
+                        )}
                       </button>
                     );
                   })
@@ -442,6 +472,27 @@ const Profile = () => {
           </section>
         </div>
       </div>
+
+      {/* Modal de desbloqueio */}
+      {unlockMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-neutral-900 border border-purple-500/30 rounded-2xl p-6 max-w-md w-full shadow-[0_20px_60px_rgba(147,51,234,0.3)] animate-[scaleIn_0.3s_ease-out]">
+            <div className="flex items-start gap-3">
+              <div className="text-3xl">🔒</div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white mb-2">Item Bloqueado</h3>
+                <p className="text-neutral-300 text-sm leading-relaxed">{unlockMessage}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setUnlockMessage(null)}
+              className="mt-6 w-full rounded-lg cursor-pointer bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-700 active:scale-95"
+            >
+              Entendi
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

@@ -1,5 +1,9 @@
 import { createContext } from "react";
 
+export type UserAchievements = {
+  "30_STREAK_INFINITY"?: boolean;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -9,6 +13,7 @@ export type User = {
   infiniteRecord?: number;
   infiniteCurrentScore?: number;
   infiniteStatus?: "idle" | "active" | "failed" | "completed";
+  achievements?: UserAchievements;
   createdAt: string;
   updatedAt: string;
 };

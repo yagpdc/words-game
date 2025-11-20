@@ -47,7 +47,9 @@ export type WordsHistoryPayload = {
   guesses: WordsHistoryGuess[];
 };
 
-export type WordsHistoryResponse = PaginatedResponse<WordsHistoryItem>;
+export type WordsHistoryResponse = PaginatedResponse<WordsHistoryItem> & {
+  infiniteRecord?: number;
+};
 
 export type WordsHistoryMutationResponse = {
   user: User;
@@ -149,6 +151,7 @@ export type WordsRankingItem = {
   streak: number;
   score: number;
   avatar?: AvatarConfig;
+  infiniteRecord?: number;
 };
 
 export type WordsInfiniteRunStatus = "active" | "completed" | "failed";
@@ -204,6 +207,7 @@ export type WordsInfiniteRunState = {
   history: WordsInfiniteHistoryEntry[];
   guesses?: WordsInfiniteGuess[];
   summary?: WordsInfiniteRunSummary;
+  unlockedAchievements?: string[];
 };
 
 export type WordsInfiniteGuessPayload = {

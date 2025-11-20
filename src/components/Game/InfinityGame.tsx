@@ -1,6 +1,9 @@
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import AchievementUnlockModal from "../AchievementUnlockModal";
+import { WORDS_ENDPOINTS } from "../../api/words";
 import { useAuth } from "../../hooks/auth/use-auth.hook";
 import {
   useAbandonInfiniteRunMutation,
@@ -127,6 +130,7 @@ const getErrorMessage = (error: unknown) => {
 
 const InfinityGame = () => {
   const { updateUser } = useAuth();
+  const queryClient = useQueryClient();
 
   const {
     data: run,
@@ -164,6 +168,8 @@ const InfinityGame = () => {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [hasShownResultModal, setHasShownResultModal] = useState(false);
   const previousGuessCountRef = useRef(0);
+  const [achievementQueue, setAchievementQueue] = useState<string[]>([]);
+  const [currentAchievement, setCurrentAchievement] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -178,6 +184,44 @@ const InfinityGame = () => {
       }
     };
   }, []);
+
+  // Processa fila de achievements
+  useEffect(() => {
+    if (achievementQueue.length > 0 && !currentAchievement) {
+      const [nextAchievement, ...remaining] = achievementQueue;
+      setCurrentAchievement(nextAchievement);
+      setAchievementQueue(remaining);
+    }
+  }, [achievementQueue, currentAchievement]);
+
+  const handleAchievementClose = () => {
+    setCurrentAchievement(null);
+  };
+
+  const showAchievements = async (achievements: string[]) => {
+    if (achievements && achievements.length > 0) {
+      // Adiciona achievements à fila para mostrar modais
+      setAchievementQueue((prev) => [...prev, ...achievements]);
+
+      // Refetch do profile para atualizar achievements no contexto
+      try {
+        const profileData = await queryClient.fetchQuery({
+          queryKey: ["words-profile"],
+          queryFn: async () => {
+            const { data } = await axios.get(WORDS_ENDPOINTS.profile);
+            return data;
+          },
+        });
+
+        // Atualiza o user no contexto com os novos achievements
+        if (profileData) {
+          updateUser(profileData);
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar profile após achievement:", error);
+      }
+    }
+  };
 
   const columns = run?.nextWord?.length ?? DEFAULT_COLUMNS;
   const maxAttempts = run?.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
@@ -540,8 +584,12 @@ const InfinityGame = () => {
     guessMutation.mutate(
       { guessWord },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           resetDraft();
+          // Verifica se há achievements desbloqueados
+          if (data.unlockedAchievements && data.unlockedAchievements.length > 0) {
+            showAchievements(data.unlockedAchievements);
+          }
         },
         onError: handleGuessError,
       },
@@ -625,6 +673,12 @@ const InfinityGame = () => {
       return;
     }
     abandonMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        // Verifica se há achievements desbloqueados
+        if (data.unlockedAchievements && data.unlockedAchievements.length > 0) {
+          showAchievements(data.unlockedAchievements);
+        }
+      },
       onError: (mutationError) => {
         setFeedback(getErrorMessage(mutationError));
       },
@@ -720,7 +774,7 @@ const InfinityGame = () => {
             <p className="text-sm uppercase tracking-[0.4em] text-slate-400">
               Infinite
             </p>
-            <h1 className="text-3xl font-semibold">Vida longa à run</h1>
+            <h1 className="text-3xl font-semibold">Jogo Infinito</h1>
             <p className="text-sm text-slate-300">
               Acerte a palavra em até 5 tentativas para seguir pontuando e
               buscar o recorde.
@@ -1089,6 +1143,14 @@ const InfinityGame = () => {
           </div>
         </div>
       ) : null}
+
+      {/* Achievement Unlock Modal */}
+      {currentAchievement && (
+        <AchievementUnlockModal
+          achievementId={currentAchievement}
+          onClose={handleAchievementClose}
+        />
+      )}
     </div>
   );
 };

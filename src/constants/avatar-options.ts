@@ -2,13 +2,23 @@ export type AvatarHatId = string | null;
 export type AvatarBodyId = string | null;
 export type AvatarBackgroundId = string;
 
-export const FROG_OPTIONS: {
+export type AvatarOption = {
   id: string;
   label: string;
   allowAccessories?: boolean;
-}[] = [
+  locked?: boolean;
+  unlockRequirement?: string;
+};
+
+export const FROG_OPTIONS: AvatarOption[] = [
   { id: "frogo", label: "Frogo Clássico", allowAccessories: true },
-  { id: "frogo-minion", label: "Frogo Minion", allowAccessories: false },
+  {
+    id: "frogo-minion",
+    label: "Frogo Minion",
+    allowAccessories: false,
+    locked: true,
+    unlockRequirement: "Conquiste 30 palavras seguidas no modo infinito para desbloquear!"
+  },
   { id: "frogo-piriguete", label: "Frogo Piriguete", allowAccessories: true },
 ];
 

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth/use-auth.hook";
 import { useWordsRankingQuery } from "../hooks/words/use-words-ranking";
 import AvatarPreview from "../components/AvatarPreview";
@@ -67,6 +67,14 @@ const Leaderboard = () => {
 
   return (
     <section className="flex w-full max-w-4xl flex-col items-center gap-6 text-white">
+      <div className="flex w-full items-center justify-start">
+        <Link
+          to="/game"
+          className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white"
+        >
+          {"\u2190"} Voltar para modos
+        </Link>
+      </div>
       <header className="text-center">
         <p className="text-xs uppercase tracking-[0.35em] text-neutral-500 mb-4">
           Words · Daily
@@ -82,6 +90,7 @@ const Leaderboard = () => {
               <th className="px-5 py-2 text-center">Pos</th>
               <th className="px-5 py-2 text-center">Streak</th>
               <th className="px-5 py-2 text-center">Score</th>
+              <th className="px-5 py-2 text-center">Recorde ∞</th>
             </tr>
           </thead>
           <tbody>
@@ -131,6 +140,15 @@ const Leaderboard = () => {
                   </td>
                   <td className="px-5 py-2 text-center text-sm font-medium">
                     {item.score}
+                  </td>
+                  <td className="px-5 py-2 text-center">
+                    {item.infiniteRecord !== undefined && item.infiniteRecord > 0 ? (
+                      <span className="text-sm font-medium text-emerald-300">
+                        {item.infiniteRecord}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-neutral-600">-</span>
+                    )}
                   </td>
                 </tr>
               );
