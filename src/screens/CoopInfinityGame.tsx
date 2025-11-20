@@ -225,11 +225,13 @@ const CoopInfinityGame = () => {
         setDraftLetters((prev) => {
           const newLetters = [...prev];
           newLetters[selectedCol] = key.toUpperCase();
-          if (selectedCol < columns - 1) {
-            setSelectedCol(selectedCol + 1);
-          }
           return newLetters;
         });
+        
+        // Move para próxima coluna se não for a última
+        if (selectedCol < columns - 1) {
+          setSelectedCol(selectedCol + 1);
+        }
       }
     },
     [isInputLocked, selectedCol, columns]
@@ -239,8 +241,11 @@ const CoopInfinityGame = () => {
     if (isInputLocked || !roomId) return;
 
     const word = draftLetters.join("").toUpperCase();
-
-    if (word.length !== columns) {
+    
+    // Verifica se todas as letras foram preenchidas
+    const hasEmptyLetters = draftLetters.some(letter => !letter);
+    
+    if (hasEmptyLetters || word.length !== columns) {
       setFeedback("Complete a palavra");
       setIsRowShaking(true);
       setTimeout(() => setIsRowShaking(false), 500);

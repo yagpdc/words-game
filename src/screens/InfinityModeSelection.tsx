@@ -14,19 +14,16 @@ const InfinityModeCard = ({ mode, disabled = false }: InfinityModeCardProps) => 
     solo: {
       title: "Solo",
       description: "Jogue sozinho e tente quebrar seu recorde pessoal",
-      icon: "🎯",
       route: "/game/infinity",
     },
     coop: {
       title: "Co-op",
       description: "Jogue em dupla colaborando para completar palavras",
-      icon: "🤝",
       route: "/game/infinity/coop/lobby",
     },
     versus: {
       title: "Versus",
       description: "Enfrente outro jogador em tempo real",
-      icon: "⚔️",
       route: "/game/infinity/versus/lobby",
     },
   };
@@ -40,7 +37,6 @@ const InfinityModeCard = ({ mode, disabled = false }: InfinityModeCardProps) => 
     <div
       className={`border border-neutral-800 rounded-2xl p-6 flex flex-col gap-4 text-slate-200 transition-all duration-300 ${stateClasses} h-full min-h-[220px]`}
     >
-      <div className="text-5xl mb-2">{data.icon}</div>
       <div className="flex-1 flex flex-col justify-center gap-3">
         <h2 className="text-2xl font-bold text-white">{data.title}</h2>
         <p className="text-sm text-neutral-400 leading-relaxed">
