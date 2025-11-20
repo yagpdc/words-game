@@ -63,12 +63,13 @@ export const useCoopRoomSocket = (
     }
 
     const socket = io(WORDS_SOCKET_URL, {
-      transports: ["polling"], // ⬅️ Apenas polling (Azure não suporta WebSocket no plano atual)
+      transports: ["websocket", "polling"],
       withCredentials: true,
       autoConnect: true,
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      timeout: 20000,
     });
 
     console.log("🔌 Socket: Conectando ao servidor", WORDS_SOCKET_URL, "para sala", roomId);
@@ -79,9 +80,17 @@ export const useCoopRoomSocket = (
       joinRoom();
     });
 
-    socket.on("disconnect", () => {
-      console.log("❌ Socket: Desconectado");
+    socket.on("disconnect", (reason) => {
+      console.log("❌ Socket: Desconectado. Razão:", reason);
       hasJoinedRoomRef.current = false;
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("🔴 Socket: Erro de conexão:", error.message);
+    });
+
+    socket.on("error", (error) => {
+      console.error("🔴 Socket: Erro:", error);
     });
 
     // Room events

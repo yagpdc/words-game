@@ -4,7 +4,9 @@ const PROD_API_URL =
 
 const API_ORIGIN =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_WORDS_API_URL) ||
-  PROD_API_URL;
+  (typeof import.meta !== "undefined" && import.meta.env?.PROD
+    ? PROD_API_URL
+    : LOCAL_API_URL);
 
 export const WORDS_API_ORIGIN = API_ORIGIN;
 export const WORDS_API_BASE_URL = `${API_ORIGIN}/words`;
