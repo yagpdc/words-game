@@ -74,9 +74,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
             className="rounded-xl border border-neutral-800 shadow-[0_0_15px_rgba(147,51,234,0.25)]"
           />
           <div>
-            <p className="text-xs uppercase tracking-wide text-neutral-500">
-              Jogador atual
-            </p>
+        
             <p className="text-lg font-semibold">{user?.name ?? "Convidado"}</p>
             <div className="mt-1 flex items-center gap-2 text-[11px] text-neutral-500">
               <span

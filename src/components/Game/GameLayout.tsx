@@ -5,35 +5,42 @@ const CARD_TYPES: GameCardTypes[] = ["daily", "infinity", "quartet", "double"];
 
 const CARD_ROUTES: Partial<Record<GameCardTypes, string>> = {
   daily: "/game/daily",
-  infinity: "/game/infinity",
+  infinity: "/game/infinity/mode",
 };
 
 const GameLayout = () => {
   return (
-    <div className="grid grid-cols-2  gap-20 ">
-      {CARD_TYPES.map((type) => {
-        const route = CARD_ROUTES[type];
-        if (route) {
-          return (
-            <Link
-              key={type}
-              to={route}
-              className="flex items-center justify-center"
-            >
-              <GameCard type={type} />
-            </Link>
-          );
-        }
+    <div className="w-full max-w-6xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-white mb-2">Modos de Jogo</h1>
+        <p className="text-neutral-400">Escolha um modo e comece a jogar</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {CARD_TYPES.map((type) => {
+          const route = CARD_ROUTES[type];
+          if (route) {
+            return (
+              <Link
+                key={type}
+                to={route}
+                className="transform transition-transform hover:scale-105"
+              >
+                <GameCard type={type} />
+              </Link>
+            );
+          }
 
-        return (
-          <div
-            key={type}
-            className="flex items-center justify-center opacity-60"
-          >
-            <GameCard type={type} disabled />
-          </div>
-        );
-      })}
+          return (
+            <div
+              key={type}
+              className="opacity-60"
+            >
+              <GameCard type={type} disabled />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

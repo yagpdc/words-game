@@ -751,7 +751,7 @@ const InfinityGame = () => {
           type="button"
           onClick={handleStartRun}
           disabled={startRunMutation.isPending}
-          className="rounded-md bg-purple-600 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md bg-purple-600 px-6 py-3 cursor-pointer text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {startRunMutation.isPending ? "Iniciando..." : "Iniciar run"}
         </button>

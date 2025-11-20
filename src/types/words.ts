@@ -216,3 +216,96 @@ export type WordsInfiniteGuessPayload = {
 };
 
 export type WordsInfiniteRunResponse = WordsInfiniteRunState;
+
+// Co-op Infinity Types
+export type InfiniteRoomStatus = "waiting" | "playing" | "finished";
+
+export type InfiniteRoomPlayer = {
+  userId: string;
+  name: string;
+  avatar?: AvatarConfig;
+  isCreator: boolean;
+};
+
+export type WordsInfiniteRoom = {
+  roomId: string;
+  creatorId: string;
+  players: InfiniteRoomPlayer[];
+  status: InfiniteRoomStatus;
+  runId?: string;
+  gamesPlayed: number;
+  createdAt: string;
+  startedAt?: string;
+  finishedAt?: string;
+};
+
+export type CreateRoomResponse = {
+  room: WordsInfiniteRoom;
+};
+
+export type JoinRoomResponse = {
+  room: WordsInfiniteRoom;
+  run?: WordsInfiniteRunState;
+};
+
+export type CoopGuessPayload = {
+  roomId: string;
+  guessWord: string;
+};
+
+export type CoopGuessResponse = WordsInfiniteRunState & {
+  currentTurnPlayerId: string;
+};
+
+// Socket.io events
+export type RoomPlayerJoinedEvent = {
+  roomId: string;
+  player: InfiniteRoomPlayer;
+  playersCount: number;
+};
+
+export type RoomGameStartedEvent = {
+  roomId: string;
+  run: WordsInfiniteRunState;
+  currentTurnPlayerId: string;
+};
+
+export type RoomGuessMadeEvent = {
+  roomId: string;
+  playerId: string;
+  playerName: string;
+  guess: WordsInfiniteGuess;
+  attemptNumber: number;
+};
+
+export type RoomTurnChangedEvent = {
+  roomId: string;
+  currentTurnPlayerId: string;
+  currentTurnPlayerName: string;
+};
+
+export type RoomWordCompletedEvent = {
+  roomId: string;
+  word: string;
+  nextWord: WordsInfiniteNextWord | null;
+  currentScore: number;
+};
+
+export type RoomGameOverEvent = {
+  roomId: string;
+  finalScore: number;
+  wordsCompleted: number;
+  reason: "failed" | "abandoned";
+};
+
+export type RoomPlayerAbandonedEvent = {
+  roomId: string;
+  playerId: string;
+  playerName: string;
+};
+
+export type RoomPlayerLeftEvent = {
+  roomId: string;
+  playerId: string;
+  playerName: string;
+};

@@ -28,7 +28,7 @@ const DEFAULT_BODY_DISPLAY: BodyDisplay = {
 };
 
 type AvatarPreviewProps = {
-  frogType: string;
+  frogType?: string;
   hat?: AvatarHatId;
   body?: AvatarBodyId;
   background?: AvatarBackgroundId;
@@ -37,7 +37,7 @@ type AvatarPreviewProps = {
 };
 
 const AvatarPreview = ({
-  frogType,
+  frogType = "default",
   hat,
   body,
   background,

@@ -51,6 +51,10 @@ body {
   animation: word-row-shake 0.4s ease;
 }
 
+.animate-shake {
+  animation: word-row-shake 0.4s ease;
+}
+
 @keyframes cell-highlight-pulse {
   0% {
     border-color: #facc15;

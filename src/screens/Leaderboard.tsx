@@ -117,7 +117,7 @@ const Leaderboard = () => {
                 <th className="px-5 py-2 text-center">Pos</th>
                 <th className="px-5 py-2 text-center">Streak</th>
                 <th className="px-5 py-2 text-center">Score</th>
-                <th className="px-5 py-2 text-center">Recorde ∞</th>
+                <th className="px-5 py-2 text-center">Recorde Infinity</th>
               </tr>
             </thead>
             <tbody>

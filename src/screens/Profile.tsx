@@ -351,7 +351,6 @@ const Profile = () => {
                         onClick={() => {
                           if (isLocked) {
                             setUnlockMessage(option.unlockRequirement || "Item bloqueado");
-                            setTimeout(() => setUnlockMessage(null), 4000);
                             return;
                           }
                           setFrogType(option.id);
