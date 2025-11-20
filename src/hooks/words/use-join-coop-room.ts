@@ -13,7 +13,12 @@ export const useJoinCoopRoom = () => {
           withCredentials: true,
         }
       );
-      return response.data;
+      // Backend retorna a sala diretamente, mas o tipo espera {room: ..., run?: ...}
+      const data = response.data;
+      return {
+        room: data,
+        run: data.run,
+      };
     },
   });
 };

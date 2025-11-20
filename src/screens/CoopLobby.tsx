@@ -101,6 +101,7 @@ const CoopLobby = () => {
     setError(null);
     try {
       const result = await createRoomMutation.mutateAsync();
+      console.log("🎮 Sala criada:", result);
       setRoom(result.room);
       setMode("create");
     } catch (err: any) {
@@ -258,6 +259,7 @@ const CoopLobby = () => {
   }
 
   if (!room) {
+    console.log("⚠️ Renderizando Carregando - mode:", mode, "room:", room);
     return (
       <div className="w-full max-w-3xl mx-auto px-4 py-8">
         <div className="mb-8">

@@ -242,6 +242,16 @@ const CoopInfinityGame = () => {
 
     const word = draftLetters.join("").toUpperCase();
     
+    console.log("DEBUG Submit:", {
+      draftLetters,
+      word,
+      wordLength: word.length,
+      columns,
+      hasEmptyLetters: draftLetters.some(letter => !letter),
+      isInputLocked,
+      roomId
+    });
+    
     // Verifica se todas as letras foram preenchidas
     const hasEmptyLetters = draftLetters.some(letter => !letter);
     
