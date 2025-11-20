@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AiOutlineFire } from "react-icons/ai";
 import AvatarPreview from "../components/AvatarPreview";
 import { normalizeAvatarConfig } from "../utils/avatar";
+import { useOnlineUsers } from "../hooks/socket/use-online-users";
 
 type AuthenticatedLayoutProps = {
   children: ReactNode;
@@ -13,6 +14,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isConnected } = useOnlineUsers();
   const avatarConfig = normalizeAvatarConfig(user?.config);
 
   const atProfile = location.pathname === "/profile";
@@ -76,6 +78,17 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
               Jogador atual
             </p>
             <p className="text-lg font-semibold">{user?.name ?? "Convidado"}</p>
+            <div className="mt-1 flex items-center gap-2 text-[11px] text-neutral-500">
+              <span
+                className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${
+                  isConnected
+                    ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
+                    : "bg-neutral-600"
+                }`}
+                title={isConnected ? "Conectado ao servidor" : "Conectando..."}
+              />
+              <span>{isConnected ? "Online" : "Conectando ao servidor"}</span>
+            </div>
           </div>
         </div>
 

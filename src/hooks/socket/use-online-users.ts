@@ -17,6 +17,17 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    if (!user?.id) {
+      setOnlineUsers([]);
+      setIsConnected(false);
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      return;
+    }
+
     const socket = io(WORDS_SOCKET_URL, {
       transports: ["websocket"],
       withCredentials: true,
@@ -25,9 +36,7 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
     socketRef.current = socket;
 
     const emitOnlineStatus = () => {
-      if (user?.id) {
-        socket.emit("user:online", { userId: user.id });
-      }
+      socket.emit("user:online", { userId: user.id });
       socket.emit("users:request");
     };
 
@@ -50,7 +59,6 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
       }
     });
 
-    // Caso o backend envie eventos com usuário individual
     socket.on("user:online", (payload: { userId: string }) => {
       if (payload?.userId) {
         setOnlineUsers((prev) => {
@@ -69,18 +77,8 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
     return () => {
       socket.removeAllListeners();
       socket.disconnect();
+      socketRef.current = null;
     };
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (!user?.id) {
-      return;
-    }
-    const socket = socketRef.current;
-    if (!socket) {
-      return;
-    }
-    socket.emit("user:online", { userId: user.id });
   }, [user?.id]);
 
   const memoizedUsers = useMemo(() => onlineUsers, [onlineUsers]);
