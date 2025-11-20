@@ -1,6 +1,8 @@
 import axios from "axios";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import PerfectScrollbar from "perfect-scrollbar";
+import "perfect-scrollbar/css/perfect-scrollbar.css";
 import { useAuth } from "../hooks/auth/use-auth.hook";
 import { useWordsRankingQuery } from "../hooks/words/use-words-ranking";
 import AvatarPreview from "../components/AvatarPreview";
@@ -10,10 +12,27 @@ import { FaCrown } from "react-icons/fa";
 const Leaderboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: ranking, isLoading, error, refetch } = useWordsRankingQuery();
 
   const currentUserId = user?.id;
+
+  useEffect(() => {
+    if (!scrollContainerRef.current || !ranking || ranking.length === 0) {
+      return;
+    }
+
+    const ps = new PerfectScrollbar(scrollContainerRef.current, {
+      wheelSpeed: 1,
+      wheelPropagation: false,
+      minScrollbarLength: 20,
+    });
+
+    return () => {
+      ps.destroy();
+    };
+  }, [ranking]);
 
   const processedError = useMemo(() => {
     if (!error) return null;
@@ -83,17 +102,22 @@ const Leaderboard = () => {
       </header>
 
       <div className="w-full overflow-hidden rounded-lg border border-neutral-800 bg-[#1b171f]">
-        <table className="w-full table-auto text-sm">
-          <thead>
-            <tr className="bg-[#231d29] text-xs font-semibold uppercase tracking-wide text-neutral-400">
-              <th className="px-5 py-2 text-left">Jogador</th>
-              <th className="px-5 py-2 text-center">Pos</th>
-              <th className="px-5 py-2 text-center">Streak</th>
-              <th className="px-5 py-2 text-center">Score</th>
-              <th className="px-5 py-2 text-center">Recorde ∞</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div
+          ref={scrollContainerRef}
+          className="relative max-h-[500px] overflow-hidden"
+          style={{ position: 'relative' }}
+        >
+          <table className="w-full table-auto text-sm">
+            <thead className="sticky top-0 z-10 bg-[#231d29]">
+              <tr className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+                <th className="px-5 py-2 text-left">Jogador</th>
+                <th className="px-5 py-2 text-center">Pos</th>
+                <th className="px-5 py-2 text-center">Streak</th>
+                <th className="px-5 py-2 text-center">Score</th>
+                <th className="px-5 py-2 text-center">Recorde ∞</th>
+              </tr>
+            </thead>
+            <tbody>
             {ranking.map((item, index) => {
               const isCurrent = item.id === currentUserId;
               const avatarConfig = normalizeAvatarConfig({
@@ -151,10 +175,11 @@ const Leaderboard = () => {
                     )}
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );
