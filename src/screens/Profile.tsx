@@ -476,7 +476,10 @@ const Profile = () => {
       {/* Modal de desbloqueio */}
       {unlockMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-neutral-900 border border-purple-500/30 rounded-2xl p-6 max-w-md w-full shadow-[0_20px_60px_rgba(147,51,234,0.3)] animate-[scaleIn_0.3s_ease-out]">
+          <div
+            className="bg-neutral-900 border border-purple-500/30 rounded-2xl p-6 max-w-md w-full shadow-[0_20px_60px_rgba(147,51,234,0.3)] animate-[scaleIn_0.3s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start gap-3">
               <div className="text-3xl">🔒</div>
               <div className="flex-1">

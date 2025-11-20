@@ -658,7 +658,7 @@ const DailyGame = () => {
           <div className="flex w-full flex-col items-center gap-3   sm:flex-row sm:items-center sm:justify-between">
             <Link
               to="/game"
-              className="inline-flex items-center gap-2 rounded-md border text-slate-200! border-neutral-700 px-4 py-2 text-sm font-semibold  transition hover:border-neutral-500 hover:text-white"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white"
             >
               {"\u2190"} Voltar para modos
             </Link>
