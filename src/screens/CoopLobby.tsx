@@ -30,7 +30,7 @@ const CoopLobby = () => {
   useEffect(() => {
     if (myRoomData?.room) {
       setRoom(myRoomData.room);
-      
+
       // If game already started, navigate to game
       if (myRoomData.run && myRoomData.room.status === "playing") {
         navigate(`/game/infinity/coop/${myRoomData.room.roomId}`, {
@@ -52,7 +52,7 @@ const CoopLobby = () => {
       if (!prev || prev.roomId !== event.roomId) return prev;
       return {
         ...prev,
-        players: event.playersCount === 2 
+        players: event.playersCount === 2
           ? [...prev.players, event.player]
           : prev.players,
       };
@@ -170,7 +170,7 @@ const CoopLobby = () => {
         <div className="mb-8">
           <Link
             to="/game/infinity/mode"
-            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white mb-6"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200! transition hover:border-neutral-500 hover:text-white mb-6"
           >
             {"\u2190"} Voltar
           </Link>
@@ -265,7 +265,7 @@ const CoopLobby = () => {
         <div className="mb-8">
           <Link
             to="/game/infinity/mode"
-            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white mb-6"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200! transition hover:border-neutral-500 hover:text-white mb-6"
           >
             {"\u2190"} Voltar
           </Link>
@@ -282,7 +282,7 @@ const CoopLobby = () => {
       <div className="mb-8">
         <Link
           to="/game/infinity/mode"
-          className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white mb-6"
+          className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200! transition hover:border-neutral-500 hover:text-white mb-6"
         >
           {"\u2190"} Voltar para modos
         </Link>
@@ -296,8 +296,8 @@ const CoopLobby = () => {
           </div>
         </div>
         <p className="text-neutral-400">
-          {hasPartner 
-            ? "Sala completa! Iniciando jogo..." 
+          {hasPartner
+            ? "Sala completa! Iniciando jogo..."
             : `Aguardando ${2 - room.players.length} jogador(es) para iniciar`}
         </p>
       </div>
@@ -310,7 +310,7 @@ const CoopLobby = () => {
                 Código da Sala
               </p>
               <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold ${
-                hasPartner 
+                hasPartner
                   ? 'bg-emerald-500/20 text-emerald-400'
                   : 'bg-amber-500/20 text-amber-400'
               }`}>

@@ -186,7 +186,7 @@ const Profile = () => {
         <div className="flex w-full items-center justify-start">
           <Link
             to="/game"
-            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200! transition hover:border-neutral-500 hover:text-white"
           >
             {"\u2190"} Voltar para modos
           </Link>

@@ -74,7 +74,7 @@ const InfinityModeSelection = () => {
         <div className="flex items-center gap-4 mb-4">
           <Link
             to="/game"
-            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-neutral-500 hover:text-white"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-slate-200! transition hover:border-neutral-500 hover:text-white"
           >
             {"\u2190"} Voltar
           </Link>
@@ -93,7 +93,7 @@ const InfinityModeSelection = () => {
                 ⚠️ Você está em uma sala co-op ativa
               </p>
               <p className="text-amber-200/80 text-sm">
-                Sala: <span className="font-mono font-bold">{myRoomData.room.roomId}</span> - 
+                Sala: <span className="font-mono font-bold">{myRoomData.room.roomId}</span> -
                 Status: {myRoomData.room.status === "waiting" ? "Aguardando" : "Jogando"}
               </p>
             </div>
