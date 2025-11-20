@@ -18,7 +18,7 @@ const Leaderboard = () => {
   const { data: ranking, isLoading, error, refetch } = useWordsRankingQuery();
 
   const currentUserId = user?.id;
-  const { onlineUsers } = useOnlineUsers();
+  const { onlineUsers, isConnected } = useOnlineUsers();
   const onlineUsersSet = useMemo(() => new Set(onlineUsers), [onlineUsers]);
 
   useEffect(() => {
@@ -126,7 +126,9 @@ const Leaderboard = () => {
               const avatarConfig = normalizeAvatarConfig({
                 avatar: item.avatar ?? {},
               });
-              const isOnline = item.isOnline === true || onlineUsersSet.has(item.id);
+              const isOnline = isCurrent
+                ? isConnected
+                : item.isOnline === true || onlineUsersSet.has(item.id);
 
               return (
                 <tr
