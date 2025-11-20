@@ -4,6 +4,8 @@ import { useAuth } from "../hooks/auth/use-auth.hook";
 import { useSubmitCoopGuess } from "../hooks/words/use-submit-coop-guess";
 import { useForceLeaveCoopRoom } from "../hooks/words/use-force-leave-coop";
 import { useCoopRoomSocket } from "../hooks/socket/use-coop-room-socket";
+import { CoopGameOverModal } from "../components/CoopGameOverModal";
+import { RematchRequestModal } from "../components/RematchRequestModal";
 import type {
   WordsInfiniteRunState,
   WordsInfiniteGuess,
@@ -13,8 +15,11 @@ import type {
   RoomGameOverEvent,
   RoomPlayerAbandonedEvent,
   RoomGameStartedEvent,
+  RoomRematchRequestEvent,
+  RoomRematchResponseEvent,
 } from "../types/words";
 import GameKeyboard from "../components/Game/GameKeyboard";
+import { useMyCoopRoom } from "../hooks/words/use-my-coop-room";
 
 type LetterStatus = "default" | "present" | "absent" | "correct";
 
@@ -71,6 +76,26 @@ const buildRowFromDraft = (letters: string[], columns: number): CellState[] =>
     status: DEFAULT_STATUS,
   }));
 
+// Função para modo infinity: fixa letras corretas/presentes nas próximas tentativas
+const buildDraftLettersInfinity = (guesses: WordsInfiniteGuess[], columns: number) => {
+  const draft = Array.from({ length: columns }, () => "");
+  // Percorre todas as tentativas anteriores
+  guesses.forEach((guess) => {
+    for (let i = 0; i < columns; i++) {
+      const letter = guess.guessWord?.[i]?.toUpperCase() ?? "";
+      const pattern = guess.pattern?.[i] ?? "";
+      // Verde: fixa letra (pattern === '2')
+      if (pattern === "2" && letter) {
+        draft[i] = letter;
+      }
+      // Amarelo NÃO fixa
+    }
+  });
+  // Log para debug: quais letras estão fixas
+  console.log("[Infinity] Letras fixas (verdes) por coluna:", draft);
+  return draft;
+};
+
 const CoopInfinityGame = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const location = useLocation();
@@ -86,13 +111,21 @@ const CoopInfinityGame = () => {
   const [draftLetters, setDraftLetters] = useState<string[]>(() =>
     buildDraftLetters(DEFAULT_COLUMNS)
   );
+  const [fixedCols, setFixedCols] = useState<boolean[]>(() =>
+    Array.from({ length: DEFAULT_COLUMNS }, () => false)
+  );
   const [selectedCol, setSelectedCol] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [isRowShaking, setIsRowShaking] = useState(false);
-  const [gameOverMessage, setGameOverMessage] = useState<string | null>(null);
+  const [gameOverEvent, setGameOverEvent] = useState<RoomGameOverEvent | null>(null);
+  const [rematchRequest, setRematchRequest] = useState<RoomRematchRequestEvent | null>(null);
+  const [players] = useState<Array<{ userId: string; username: string }>>(
+    location.state?.players || []
+  );
 
   const guessMutation = useSubmitCoopGuess();
   const forceLeaveRoomMutation = useForceLeaveCoopRoom();
+  const myCoopRoomQuery = useMyCoopRoom();
 
   // Socket handlers
   const handleGameStarted = useCallback((event: RoomGameStartedEvent) => {
@@ -101,16 +134,62 @@ const CoopInfinityGame = () => {
   }, []);
 
   const handleGuessMade = useCallback((event: RoomGuessMadeEvent) => {
-    setFeedback(`${event.playerName} fez um palpite`);
+    console.log("📥 Processando evento guess-made:", event);
+    setFeedback(`${event.playerName} fez um palpite: ${event.guess.guessWord}`);
+
+    // Atualizar run com o novo guess
+    setRun((prevRun) => {
+      if (!prevRun) return prevRun;
+
+      const newGuesses = [...(prevRun.guesses || []), event.guess];
+
+      return {
+        ...prevRun,
+        guesses: newGuesses,
+        attemptsUsed: event.attemptNumber,
+      };
+    });
+
     setTimeout(() => setFeedback(""), 2000);
   }, []);
 
   const handleTurnChanged = useCallback((event: RoomTurnChangedEvent) => {
+    console.log("📥 Processando evento turn-changed:", event);
+    console.log("🔄 Mudando turno para:", event.currentTurnPlayerId, event.currentTurnPlayerName);
     setCurrentTurnPlayerId(event.currentTurnPlayerId);
-  }, []);
+
+    // Refetch do estado do run
+    if (myCoopRoomQuery.refetch) {
+      myCoopRoomQuery.refetch().then((result) => {
+        const serverRun = result.data?.run;
+        if (serverRun) {
+          const newGuesses = serverRun.guesses?.length ? serverRun.guesses : run?.guesses || [];
+          const mergedRun = { ...(serverRun as any), guesses: newGuesses } as WordsInfiniteRunState;
+          setRun(mergedRun);
+          setDraftLetters(buildDraftLetters(serverRun.nextWord?.length ?? columns));
+          setSelectedCol(0);
+        }
+      });
+    }
+  }, [myCoopRoomQuery, run]);
 
   const handleWordCompleted = useCallback((event: RoomWordCompletedEvent) => {
+    console.log("📥 Processando evento word-completed:", event);
     setFeedback(`Palavra completada! Pontuação: ${event.currentScore}`);
+
+    // Atualizar run com nova pontuação e próxima palavra
+    setRun((prevRun) => {
+      if (!prevRun) return prevRun;
+
+      return {
+        ...prevRun,
+        currentScore: event.currentScore,
+        nextWord: event.nextWord,
+        guesses: [], // Reset guesses para a próxima palavra
+        attemptsUsed: 0,
+      };
+    });
+
     setDraftLetters(buildDraftLetters(event.nextWord?.length ?? DEFAULT_COLUMNS));
     setSelectedCol(0);
     setTimeout(() => setFeedback(""), 3000);
@@ -118,35 +197,61 @@ const CoopInfinityGame = () => {
 
   const handleGameOver = useCallback(
     (event: RoomGameOverEvent) => {
-      const message =
-        event.reason === "abandoned"
-          ? "Jogo encerrado - Um jogador abandonou"
-          : `Fim de jogo! Pontuação final: ${event.finalScore} | Palavras completadas: ${event.wordsCompleted}`;
-      setGameOverMessage(message);
-      setTimeout(() => {
-        navigate("/game/infinity/mode");
-      }, 5000);
+      setGameOverEvent(event);
+      // Mostrar modal via `gameOverEvent` — não redirecionamos automaticamente.
     },
-    [navigate]
+    []
   );
 
   const handlePlayerAbandoned = useCallback(
     (event: RoomPlayerAbandonedEvent) => {
       setFeedback(`${event.playerName} abandonou o jogo`);
-      setTimeout(() => {
-        navigate("/game/infinity/mode");
-      }, 3000);
+      // Não redirecionar automaticamente
     },
-    [navigate]
+    []
   );
 
-  useCoopRoomSocket(roomId ?? null, {
+  const handleRematchRequest = useCallback((event: RoomRematchRequestEvent) => {
+    console.log("📥 Recebendo pedido de rematch:", event);
+    // Só mostrar modal se o pedido não for meu
+    if (event.requesterId !== user?.id) {
+      setRematchRequest(event);
+    }
+  }, [user?.id]);
+
+  const handleRematchResponse = useCallback(
+    (event: RoomRematchResponseEvent) => {
+      console.log("📥 Resposta de rematch:", event);
+
+      if (!event.accepted) {
+        setFeedback(`${event.responderName} recusou a revanche`);
+        setRematchRequest(null);
+        return;
+      }
+
+      if (event.newRoomId) {
+        // Ambos aceitaram - redirecionar para nova sala
+        console.log("✅ Nova sala criada:", event.newRoomId);
+        navigate(`/game/infinity/coop/${event.newRoomId}`, {
+          state: { players },
+        });
+      } else {
+        // Outro jogador aceitou, mas ainda esperando
+        setFeedback(`${event.responderName} aceitou! Aguardando iniciar...`);
+      }
+    },
+    [navigate, players]
+  );
+
+  const socketHandlers = useCoopRoomSocket(roomId ?? null, {
     onGameStarted: handleGameStarted,
     onGuessMade: handleGuessMade,
     onTurnChanged: handleTurnChanged,
     onWordCompleted: handleWordCompleted,
     onGameOver: handleGameOver,
     onPlayerAbandoned: handlePlayerAbandoned,
+    onRematchRequest: handleRematchRequest,
+    onRematchResponse: handleRematchResponse,
   });
 
   const columns = run?.nextWord?.length ?? DEFAULT_COLUMNS;
@@ -156,6 +261,49 @@ const CoopInfinityGame = () => {
   const isMyTurn = currentTurnPlayerId === user?.id;
   const isGameActive = run?.status === "active";
   const isInputLocked = !isMyTurn || !isGameActive || guessMutation.isPending;
+
+  // Log detalhado quando isMyTurn muda
+  useEffect(() => {
+    console.log("⚡ isMyTurn mudou para:", isMyTurn, {
+      currentTurnPlayerId,
+      myUserId: user?.id,
+      comparison: `${currentTurnPlayerId} === ${user?.id}`,
+    });
+  }, [isMyTurn, currentTurnPlayerId, user?.id]);
+
+  // Debug: Mostrar info de turno
+  useEffect(() => {
+    console.log("🎮 Estado do jogo:", {
+      currentTurnPlayerId,
+      myUserId: user?.id,
+      myUsername: user?.name,
+      isMyTurn,
+      isGameActive,
+      isInputLocked,
+      runStatus: run?.status,
+      attemptsUsed: run?.attemptsUsed,
+      currentGuessCount,
+      guessMutationPending: guessMutation.isPending,
+      breakdown: {
+        notMyTurn: !isMyTurn,
+        notActive: !isGameActive,
+        mutationPending: guessMutation.isPending,
+      }
+    });
+  }, [currentTurnPlayerId, user?.id, user?.name, isMyTurn, isGameActive, isInputLocked, run?.status, run?.attemptsUsed, currentGuessCount, guessMutation.isPending]);
+
+  // Atualiza draftLetters ao mudar run ou guesses
+  useEffect(() => {
+    if (run && run.guesses) {
+      const draft = buildDraftLettersInfinity(run.guesses, columns);
+      setDraftLetters(draft);
+      setFixedCols(draft.map((l) => !!l));
+    } else {
+      const draft = buildDraftLetters(columns);
+      setDraftLetters(draft);
+      setFixedCols(Array.from({ length: columns }, () => false));
+    }
+  }, [run, columns]);
 
   const rows = useMemo(() => {
     const result: CellState[][] = [];
@@ -204,58 +352,56 @@ const CoopInfinityGame = () => {
     return states;
   }, [boardGuesses]);
 
-  const handleKeyPress = useCallback(
-    (key: string) => {
-      if (isInputLocked) return;
-
-      if (key === "BACKSPACE") {
-        setDraftLetters((prev) => {
-          const newLetters = [...prev];
-          if (newLetters[selectedCol]) {
-            newLetters[selectedCol] = "";
-          } else if (selectedCol > 0) {
-            newLetters[selectedCol - 1] = "";
-            setSelectedCol(selectedCol - 1);
-          }
-          return newLetters;
-        });
-      } else if (key === "ENTER") {
-        handleSubmitGuess();
-      } else if (key.length === 1 && /^[A-Z]$/i.test(key)) {
-        setDraftLetters((prev) => {
-          const newLetters = [...prev];
-          newLetters[selectedCol] = key.toUpperCase();
-          return newLetters;
-        });
-        
-        // Move para próxima coluna se não for a última
-        if (selectedCol < columns - 1) {
-          setSelectedCol(selectedCol + 1);
-        }
-      }
-    },
-    [isInputLocked, selectedCol, columns]
-  );
-
-  const handleSubmitGuess = async () => {
+  const handleSubmitGuess = useCallback(async () => {
     if (isInputLocked || !roomId) return;
 
     const word = draftLetters.join("").toUpperCase();
-    
+
+    // Debug detalhado
     console.log("DEBUG Submit:", {
       draftLetters,
+      draftLettersLength: draftLetters.length,
       word,
       wordLength: word.length,
       columns,
       hasEmptyLetters: draftLetters.some(letter => !letter),
       isInputLocked,
-      roomId
+      roomId,
+      eachLetter: draftLetters.map((l, i) => ({
+        index: i,
+        letter: l,
+        isEmpty: !l,
+        length: l.length,
+        charCode: l ? l.charCodeAt(0) : null
+      })),
+      emptyPositions: draftLetters.map((l, i) => !l ? i : null).filter(i => i !== null)
     });
-    
+
     // Verifica se todas as letras foram preenchidas
+    // Problema: draftLetters pode ter tamanho diferente de columns
+    if (draftLetters.length !== columns) {
+      console.error("ERRO: draftLetters.length !== columns", draftLetters.length, columns);
+      setFeedback("Erro: tamanho incorreto da palavra");
+      setIsRowShaking(true);
+      setTimeout(() => setIsRowShaking(false), 500);
+      return;
+    }
+
     const hasEmptyLetters = draftLetters.some(letter => !letter);
-    
-    if (hasEmptyLetters || word.length !== columns) {
+
+    if (hasEmptyLetters) {
+      const emptyPositions = draftLetters
+        .map((l, i) => !l ? i + 1 : null)
+        .filter(i => i !== null);
+      console.log("Palavra incompleta. Posições vazias:", emptyPositions);
+      setFeedback(`Complete a palavra (falta posição ${emptyPositions.join(', ')})`);
+      setIsRowShaking(true);
+      setTimeout(() => setIsRowShaking(false), 500);
+      return;
+    }
+
+    if (word.length !== columns) {
+      console.log("Palavra com tamanho errado:", { wordLength: word.length, columns });
       setFeedback("Complete a palavra");
       setIsRowShaking(true);
       setTimeout(() => setIsRowShaking(false), 500);
@@ -278,10 +424,12 @@ const CoopInfinityGame = () => {
       if (response.status === "completed") {
         setFeedback("Vitória! Palavra completada!");
       } else if (response.status === "failed") {
-        setGameOverMessage(
-          `Fim de jogo! Pontuação: ${response.currentScore}`
-        );
-        setTimeout(() => navigate("/game/infinity/mode"), 5000);
+        setGameOverEvent({
+          roomId: roomId || "",
+          finalScore: response.currentScore,
+          wordsCompleted: response.wordsCompleted ?? 0,
+          reason: "failed",
+        });
       }
     } catch (error: any) {
       const message =
@@ -293,7 +441,84 @@ const CoopInfinityGame = () => {
         setFeedback("");
       }, 2000);
     }
+  }, [isInputLocked, roomId, draftLetters, columns, guessMutation, navigate]);
+
+  // Helpers to find editable (non-fixed) columns
+  const findNextEditable = (start: number) => {
+    for (let i = start; i < columns; i++) {
+      if (!fixedCols[i]) return i;
+    }
+    return -1;
   };
+
+  const findPrevEditable = (start: number) => {
+    for (let i = start; i >= 0; i--) {
+      if (!fixedCols[i]) return i;
+    }
+    return -1;
+  };
+
+  const handleKeyPress = useCallback(
+    (key: string) => {
+      if (isInputLocked) return;
+
+      if (key === "BACKSPACE") {
+        setDraftLetters((prev) => {
+          const newLetters = [...prev];
+          // If current pos is fixed, move to previous editable
+          if (fixedCols[selectedCol]) {
+            const prev = findPrevEditable(selectedCol - 1);
+            if (prev !== -1) setSelectedCol(prev);
+            return newLetters;
+          }
+
+          if (newLetters[selectedCol]) {
+            newLetters[selectedCol] = "";
+          } else if (selectedCol > 0) {
+            const prev = findPrevEditable(selectedCol - 1);
+            if (prev !== -1) {
+              newLetters[prev] = "";
+              setSelectedCol(prev);
+            }
+          }
+          return newLetters;
+        });
+      } else if (key === "ENTER") {
+        handleSubmitGuess();
+      } else if (key.length === 1 && /^[A-Z]$/i.test(key)) {
+        // Ensure selectedCol is editable
+        if (selectedCol >= columns) {
+          console.log("⚠️ Já preencheu todas as letras");
+          return;
+        }
+
+        let col = selectedCol;
+        if (fixedCols[col]) {
+          const next = findNextEditable(col + 1);
+          if (next === -1) {
+            console.log("⚠️ Não há colunas editáveis");
+            return;
+          }
+          col = next;
+          setSelectedCol(next);
+        }
+
+        console.log(`✏️ Digitando "${key}" na posição ${col}`);
+
+        setDraftLetters((prev) => {
+          const newLetters = [...prev];
+          newLetters[col] = key.toUpperCase();
+          console.log("📝 Draft atualizado:", newLetters);
+          return newLetters;
+        });
+
+        // Move to next editable column
+        const nextEditable = findNextEditable(col + 1);
+        if (nextEditable !== -1) setSelectedCol(nextEditable);
+      }
+    },
+    [isInputLocked, selectedCol, columns, handleSubmitGuess, fixedCols]
+  );
 
   const handleAbandon = async () => {
     if (!roomId || !window.confirm("Tem certeza que deseja abandonar?")) return;
@@ -331,17 +556,8 @@ const CoopInfinityGame = () => {
     );
   }
 
-  if (gameOverMessage) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4">
-        <div className="text-6xl">🏁</div>
-        <h2 className="text-3xl font-bold text-white text-center">
-          {gameOverMessage}
-        </h2>
-        <p className="text-neutral-400">Redirecionando...</p>
-      </div>
-    );
-  }
+  // When game is over we show a modal (`CoopGameOverModal`) using `gameOverEvent`.
+  // Keep the main UI rendered so the modal can appear on top.
 
   return (
     <div className="flex flex-col items-center w-full min-h-screen py-8 px-4">
@@ -408,14 +624,18 @@ const CoopInfinityGame = () => {
                 <div
                   key={`cell-${rowIndex}-${colIndex}`}
                   className={`w-14 h-14 flex items-center justify-center text-2xl font-bold rounded-md transition-all ${
-                    CELL_STYLES[cell.status]
+                    fixedCols[colIndex] && rowIndex === currentGuessCount
+                      ? "bg-emerald-600/80 text-white border-2 border-emerald-400"
+                      : CELL_STYLES[cell.status]
                   } ${
-                    rowIndex === currentGuessCount && colIndex === selectedCol
+                    fixedCols[colIndex] && rowIndex === currentGuessCount
+                      ? "cursor-not-allowed"
+                      : rowIndex === currentGuessCount && colIndex === selectedCol
                       ? "ring-2 ring-purple-500"
                       : ""
                   }`}
                   onClick={() => {
-                    if (rowIndex === currentGuessCount && !isInputLocked) {
+                    if (rowIndex === currentGuessCount && !isInputLocked && !fixedCols[colIndex]) {
                       setSelectedCol(colIndex);
                     }
                   }}
@@ -443,6 +663,33 @@ const CoopInfinityGame = () => {
           {forceLeaveRoomMutation.isPending ? "Abandonando..." : "Abandonar Partida"}
         </button>
       </div>
+
+      {/* Modal de Game Over */}
+      {gameOverEvent && (
+        <CoopGameOverModal
+          event={gameOverEvent}
+          allGuesses={run?.guesses ?? []}
+          players={players}
+          currentUserId={user?.id ?? ""}
+          onRequestRematch={socketHandlers.requestRematch}
+          onClose={() => setGameOverEvent(null)}
+        />
+      )}
+
+      {/* Modal de Pedido de Rematch */}
+      {rematchRequest && (
+        <RematchRequestModal
+          event={rematchRequest}
+          onAccept={() => {
+            socketHandlers.respondToRematch(true);
+            setRematchRequest(null);
+          }}
+          onDecline={() => {
+            socketHandlers.respondToRematch(false);
+            setRematchRequest(null);
+          }}
+        />
+      )}
     </div>
   );
 };

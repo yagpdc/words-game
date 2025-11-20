@@ -309,3 +309,17 @@ export type RoomPlayerLeftEvent = {
   playerId: string;
   playerName: string;
 };
+
+export type RoomRematchRequestEvent = {
+  roomId: string;
+  requesterId: string;
+  requesterName: string;
+};
+
+export type RoomRematchResponseEvent = {
+  roomId: string;
+  accepted: boolean;
+  responderId: string;
+  responderName: string;
+  newRoomId?: string; // Se aceito, ID da nova sala
+};
