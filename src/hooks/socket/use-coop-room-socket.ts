@@ -63,7 +63,7 @@ export const useCoopRoomSocket = (
     }
 
     const socket = io(WORDS_SOCKET_URL, {
-      transports: ["polling", "websocket"], // Tenta polling primeiro, depois websocket
+      transports: ["polling"], // ⬅️ Apenas polling (Azure não suporta WebSocket no plano atual)
       withCredentials: true,
       autoConnect: true,
       reconnection: true,
