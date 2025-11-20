@@ -126,7 +126,7 @@ const Leaderboard = () => {
               const avatarConfig = normalizeAvatarConfig({
                 avatar: item.avatar ?? {},
               });
-              const isOnline = item.isOnline ?? onlineUsersSet.has(item.id);
+              const isOnline = item.isOnline === true || onlineUsersSet.has(item.id);
 
               return (
                 <tr

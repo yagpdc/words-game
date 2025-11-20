@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
+import { useQueryClient } from "@tanstack/react-query";
 import { WORDS_SOCKET_URL } from "../../api/words";
 import { useAuth } from "../auth/use-auth.hook";
 
@@ -15,6 +16,7 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
   const socketRef = useRef<Socket | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!user?.id) {
@@ -49,13 +51,19 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
       setIsConnected(false);
     });
 
+    const invalidateRanking = () => {
+      queryClient.invalidateQueries({ queryKey: ["words-ranking"] });
+    };
+
     socket.on("users:online", (payload: OnlineUsersPayload) => {
       if (Array.isArray(payload)) {
         setOnlineUsers(payload);
+        invalidateRanking();
         return;
       }
       if (payload && Array.isArray(payload.users)) {
         setOnlineUsers(payload.users);
+        invalidateRanking();
       }
     });
 
@@ -65,12 +73,14 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
           if (prev.includes(payload.userId)) return prev;
           return [...prev, payload.userId];
         });
+        invalidateRanking();
       }
     });
 
     socket.on("user:offline", (payload: { userId: string }) => {
       if (payload?.userId) {
         setOnlineUsers((prev) => prev.filter((id) => id !== payload.userId));
+        invalidateRanking();
       }
     });
 
@@ -79,7 +89,7 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [user?.id]);
+  }, [user?.id, queryClient]);
 
   const memoizedUsers = useMemo(() => onlineUsers, [onlineUsers]);
 
