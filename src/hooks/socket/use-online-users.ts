@@ -14,12 +14,31 @@ type UseOnlineUsersResult = {
 export const useOnlineUsers = (): UseOnlineUsersResult => {
   const { user } = useAuth();
   const socketRef = useRef<Socket | null>(null);
+  const heartbeatRef = useRef<number | null>(null);
+  const hasIdentifiedRef = useRef(false);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    const stopHeartbeat = () => {
+      if (heartbeatRef.current != null) {
+        window.clearInterval(heartbeatRef.current);
+        heartbeatRef.current = null;
+      }
+    };
+
+    const emitUserOffline = (socket?: Socket | null) => {
+      const targetSocket = socket ?? socketRef.current;
+      if (targetSocket?.connected && hasIdentifiedRef.current) {
+        targetSocket.emit("user:offline");
+        hasIdentifiedRef.current = false;
+      }
+    };
+
     if (!user?.id) {
+      stopHeartbeat();
+      emitUserOffline();
       setOnlineUsers([]);
       setIsConnected(false);
       if (socketRef.current) {
@@ -40,20 +59,31 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
     const emitOnlineStatus = () => {
       socket.emit("user:online", { userId: user.id });
       socket.emit("users:request");
+      hasIdentifiedRef.current = true;
+    };
+
+    const startHeartbeat = () => {
+      stopHeartbeat();
+      socket.emit("user:heartbeat");
+      heartbeatRef.current = window.setInterval(() => {
+        socket.emit("user:heartbeat");
+      }, 30_000);
+    };
+
+    const invalidateRanking = () => {
+      queryClient.invalidateQueries({ queryKey: ["words-ranking"] });
     };
 
     socket.on("connect", () => {
       setIsConnected(true);
       emitOnlineStatus();
+      startHeartbeat();
     });
 
     socket.on("disconnect", () => {
       setIsConnected(false);
+      stopHeartbeat();
     });
-
-    const invalidateRanking = () => {
-      queryClient.invalidateQueries({ queryKey: ["words-ranking"] });
-    };
 
     socket.on("users:online", (payload: OnlineUsersPayload) => {
       if (Array.isArray(payload)) {
@@ -84,7 +114,17 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
       }
     });
 
+    const handleBeforeUnload = () => {
+      emitUserOffline(socket);
+      stopHeartbeat();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      emitUserOffline(socket);
+      stopHeartbeat();
       socket.removeAllListeners();
       socket.disconnect();
       socketRef.current = null;
