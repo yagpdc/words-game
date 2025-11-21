@@ -88,24 +88,28 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
     socket.on("users:online", (payload: any) => {
       console.log("📥 Socket: users:online payload:", payload);
 
-      if (Array.isArray(payload)) {
-        setOnlineUsers(payload);
-        invalidateRanking();
-        return;
-      }
+      // Normalize ids array
+      let ids: string[] = [];
+      if (Array.isArray(payload)) ids = payload;
+      else if (Array.isArray(payload.users)) ids = payload.users;
+      else if (Array.isArray(payload.onlineUserIds)) ids = payload.onlineUserIds;
+      else if (Array.isArray(payload.onlineUsers)) ids = payload.onlineUsers.map((u: any) => u.id);
 
-      if (payload) {
-        if (Array.isArray(payload.users)) {
-          setOnlineUsers(payload.users);
-          invalidateRanking();
-          return;
-        }
+      setOnlineUsers(ids);
+      invalidateRanking();
 
-        if (Array.isArray((payload as any).onlineUserIds)) {
-          setOnlineUsers((payload as any).onlineUserIds);
-          invalidateRanking();
-          return;
+      // Dispatch window event with richer payload so UI providers can use names when available
+      try {
+        if (typeof window !== "undefined") {
+          const detail: any = { onlineUserIds: ids, totalOnline: payload?.totalOnline ?? ids.length };
+          if (Array.isArray(payload.onlineUsers)) {
+            detail.onlineUsers = payload.onlineUsers;
+          }
+          const ev = new CustomEvent("onlineUsersUpdate", { detail });
+          window.dispatchEvent(ev);
         }
+      } catch (e) {
+        // ignore
       }
     });
 
@@ -116,6 +120,13 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
           return [...prev, payload.userId];
         });
         invalidateRanking();
+        // notify providers of change
+        try {
+          if (typeof window !== "undefined") {
+            const ev = new CustomEvent("onlineUsersUpdate", { detail: { onlineUserIds: [...(socketRef.current ? [] : []), payload.userId] } });
+            window.dispatchEvent(ev);
+          }
+        } catch {}
       }
     });
 
@@ -123,6 +134,12 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
       if (payload?.userId) {
         setOnlineUsers((prev) => prev.filter((id) => id !== payload.userId));
         invalidateRanking();
+        try {
+          if (typeof window !== "undefined") {
+            const ev = new CustomEvent("onlineUsersUpdate", { detail: { onlineUserIds: [] } });
+            window.dispatchEvent(ev);
+          }
+        } catch {}
       }
     });
 

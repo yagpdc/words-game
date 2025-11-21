@@ -3,11 +3,13 @@ import React, { useEffect, useRef, useState } from 'react';
 type Toast = {
   id: string;
   text: string;
+  isOnline: boolean;
 };
 
 export function OnlineToastProvider() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const prevOnlineRef = useRef<Set<string>>(new Set());
+  const namesRef = useRef<Map<string, string>>(new Map());
   const initialLoadRef = useRef(true);
   const TIMEOUT = 6000;
 
@@ -35,9 +37,26 @@ export function OnlineToastProvider() {
     async function handleOnlineUpdate(e: Event) {
       if (!mounted) return;
       const detail = (e as CustomEvent).detail;
-      if (!detail || !Array.isArray(detail.onlineUserIds)) return;
+      if (!detail) return;
 
-      const newSet = new Set<string>(detail.onlineUserIds);
+      // Support server-provided shape: { onlineUsers: [{id,name}], onlineUserIds: [...] }
+      const idsFromDetail: string[] = Array.isArray(detail.onlineUserIds)
+        ? detail.onlineUserIds
+        : Array.isArray(detail.onlineUsers)
+        ? detail.onlineUsers.map((u: any) => u.id)
+        : [];
+
+      if (idsFromDetail.length === 0) return;
+
+      const newSet = new Set<string>(idsFromDetail);
+
+      // populate/refresh known names from server payload
+      if (Array.isArray(detail.onlineUsers)) {
+        for (const u of detail.onlineUsers) {
+          if (u && u.id) namesRef.current.set(u.id, u.name || u.id);
+        }
+      }
+
       if (initialLoadRef.current) {
         prevOnlineRef.current = newSet;
         initialLoadRef.current = false;
@@ -45,18 +64,44 @@ export function OnlineToastProvider() {
       }
 
       const newly: string[] = [];
+      const removed: string[] = [];
+
       for (const id of newSet) {
         if (!prevOnlineRef.current.has(id)) newly.push(id);
       }
+
+      for (const id of prevOnlineRef.current) {
+        if (!newSet.has(id)) removed.push(id);
+      }
+
+      // Update prev set for next round
       prevOnlineRef.current = newSet;
 
-      if (newly.length === 0) return;
-
       const currentUserId = (window as any).CURRENT_USER_ID || null;
+
+      // Show online toasts
       for (const id of newly) {
         if (id === currentUserId) continue;
-        const name = await resolveName(id);
-        showToast(`${name} acabou de ficar online`);
+
+        let name = namesRef.current.get(id) || null;
+        if (!name) {
+          name = await resolveName(id);
+          namesRef.current.set(id, name);
+        }
+        showToast(`${name} acabou de ficar online`, true);
+      }
+
+      // Show offline toasts
+      for (const id of removed) {
+        if (id === currentUserId) continue;
+
+        let name = namesRef.current.get(id) || null;
+        if (!name) {
+          name = await resolveName(id);
+        }
+        showToast(`${name} saiu agora`, false);
+        // clean up known name for offline user
+        namesRef.current.delete(id);
       }
     }
 
@@ -67,9 +112,9 @@ export function OnlineToastProvider() {
     };
   }, []);
 
-  function showToast(text: string) {
+  function showToast(text: string, isOnline: boolean) {
     const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    setToasts((s) => [...s, { id, text }]);
+    setToasts((s) => [...s, { id, text, isOnline }]);
     setTimeout(() => {
       setToasts((s) => s.filter((t) => t.id !== id));
     }, TIMEOUT + 200);
@@ -92,6 +137,7 @@ export function OnlineToastProvider() {
           role="status"
           onClick={() => removeToast(t.id)}
         >
+          <span className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full mr-2 ${t.isOnline ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" : "bg-neutral-600"}`}  />
           {t.text}
         </div>
       ))}
