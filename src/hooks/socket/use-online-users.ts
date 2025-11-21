@@ -85,15 +85,27 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
       stopHeartbeat();
     });
 
-    socket.on("users:online", (payload: OnlineUsersPayload) => {
+    socket.on("users:online", (payload: any) => {
+      console.log("📥 Socket: users:online payload:", payload);
+
       if (Array.isArray(payload)) {
         setOnlineUsers(payload);
         invalidateRanking();
         return;
       }
-      if (payload && Array.isArray(payload.users)) {
-        setOnlineUsers(payload.users);
-        invalidateRanking();
+
+      if (payload) {
+        if (Array.isArray(payload.users)) {
+          setOnlineUsers(payload.users);
+          invalidateRanking();
+          return;
+        }
+
+        if (Array.isArray((payload as any).onlineUserIds)) {
+          setOnlineUsers((payload as any).onlineUserIds);
+          invalidateRanking();
+          return;
+        }
       }
     });
 
@@ -132,6 +144,21 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
   }, [user?.id, queryClient]);
 
   const memoizedUsers = useMemo(() => onlineUsers, [onlineUsers]);
+
+  // Notify other parts of the app (e.g. OnlineToastProvider) about updates
+  // using a window CustomEvent. The provider listens for `onlineUsersUpdate`.
+  // Guard against non-browser environments.
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const detail = { onlineUserIds: memoizedUsers };
+        const ev = new CustomEvent("onlineUsersUpdate", { detail });
+        window.dispatchEvent(ev);
+      }
+    } catch (e) {
+      // ignore in non-supporting environments
+    }
+  }, [memoizedUsers]);
 
   return {
     onlineUsers: memoizedUsers,

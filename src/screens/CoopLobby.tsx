@@ -49,7 +49,23 @@ const CoopLobby = () => {
   // Socket handlers
   const handlePlayerJoined = useCallback((event: RoomPlayerJoinedEvent) => {
     setRoom((prev) => {
-      if (!prev || prev.roomId !== event.roomId) return prev;
+      // If we don't yet have the room state (race between socket and initial query),
+      // trigger a refetch to populate authoritative data from the server.
+      if (!prev || prev.roomId !== event.roomId) {
+        // refetchMyRoom is available in outer scope
+        if (refetchMyRoom) {
+          refetchMyRoom().then((res) => {
+            const data = res?.data;
+            if (data?.room) {
+              setRoom(data.room);
+            }
+          }).catch((err) => {
+            console.error("Erro ao refetchMyRoom após player-joined:", err);
+          });
+        }
+        return prev;
+      }
+
       return {
         ...prev,
         players: event.playersCount === 2
