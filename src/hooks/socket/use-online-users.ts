@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { WORDS_SOCKET_URL } from "../../api/words";
 import { useAuth } from "../auth/use-auth.hook";
 
-type OnlineUsersPayload = string[] | { users: string[] };
 
 type UseOnlineUsersResult = {
   onlineUsers: string[];
