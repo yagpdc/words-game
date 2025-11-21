@@ -136,8 +136,8 @@ export const BODY_DISPLAY: Record<string, BodyDisplay> = {
     renderAboveHat: true,
   },
   body_04: { widthPercent: 68, topPercent: 64, translateXPercent: -4 },
-  body_05: { widthPercent: 70, topPercent: 64, translateXPercent: -6 },
-  body_06: { widthPercent: 66, topPercent: 66, translateXPercent: -7 },
+  body_05: { widthPercent: 66, topPercent: 64, translateXPercent: -6 },
+  body_06: { widthPercent: 70, topPercent: 66, translateXPercent: -5 },
 };
 
 export const BACKGROUND_GRADIENTS: Record<string, readonly [string, string]> =
