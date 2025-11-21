@@ -32,6 +32,7 @@ export const HAT_OPTIONS: { id: string | null; label: string }[] = [
   { id: "hat_06", label: "Tiara Lunar" },
   { id: "hat_07", label: "Monóculo Arcano" },
   { id: "hat_08", label: "Capacete Espacial" },
+  { id: "hat_09", label: "Boina Vintage" },
 ];
 
 export const BODY_OPTIONS: { id: string | null; label: string }[] = [
@@ -40,6 +41,8 @@ export const BODY_OPTIONS: { id: string | null; label: string }[] = [
   { id: "body_02", label: "Sailor moon" },
   { id: "body_03", label: "Varinha Mágica" },
   { id: "body_04", label: "Coleira Cibernética" },
+  { id: "body_05", label: "Manto Estelar" },
+  { id: "body_06", label: "Armadura Neon" },
 ];
 
 export const BACKGROUND_OPTIONS: {
@@ -113,6 +116,7 @@ export const HAT_DISPLAY: Record<string, HatDisplay> = {
   hat_06: { widthPercent: 64, topPercent: 22, translateXPercent: 6 },
   hat_07: { widthPercent: 47, topPercent: 9, translateXPercent: 16 },
   hat_08: { widthPercent: 68, topPercent: 4, translateXPercent: 5 },
+  hat_09: { widthPercent: 70, topPercent: 11, translateXPercent: 2 },
 };
 
 export type BodyDisplay = {
@@ -132,6 +136,8 @@ export const BODY_DISPLAY: Record<string, BodyDisplay> = {
     renderAboveHat: true,
   },
   body_04: { widthPercent: 68, topPercent: 64, translateXPercent: -4 },
+  body_05: { widthPercent: 70, topPercent: 64, translateXPercent: -6 },
+  body_06: { widthPercent: 66, topPercent: 66, translateXPercent: -7 },
 };
 
 export const BACKGROUND_GRADIENTS: Record<string, readonly [string, string]> =
