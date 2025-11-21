@@ -17,13 +17,24 @@ export const useMyCoopRoom = (enabled = true) => {
         const response = await axios.get(WORDS_ENDPOINTS.coopMyRoom, {
           withCredentials: true,
         });
-        
+
         const data = response.data;
-        
+
         // Backend retorna os dados direto, precisamos normalizar
         if (data && data.roomId) {
+          // Normalize run: backend may use `currentGuesses` while frontend expects `guesses`
+          let normalizedRun = data.run;
+          if (normalizedRun) {
+            // If server provided `currentGuesses` but no `guesses`, map it
+            if (!normalizedRun.guesses || normalizedRun.guesses.length === 0) {
+              if (Array.isArray((normalizedRun as any).currentGuesses) && (normalizedRun as any).currentGuesses.length > 0) {
+                normalizedRun = { ...normalizedRun, guesses: (normalizedRun as any).currentGuesses };
+              }
+            }
+          }
+
           return {
-            room: {
+              room: {
               roomId: data.roomId,
               status: data.status,
               players: data.players.map((p: any) => ({
@@ -38,11 +49,11 @@ export const useMyCoopRoom = (enabled = true) => {
               startedAt: data.startedAt,
               finishedAt: data.finishedAt,
             } as WordsInfiniteRoom,
-            run: data.run,
-            currentTurnPlayerId: data.currentTurnPlayer,
+              run: normalizedRun,
+              currentTurnPlayerId: data.currentTurnPlayer,
           };
         }
-        
+
         return null;
       } catch (error: any) {
         if (error.response?.status === 404) {

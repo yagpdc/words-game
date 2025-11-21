@@ -127,28 +127,63 @@ const CoopInfinityGame = () => {
   const forceLeaveRoomMutation = useForceLeaveCoopRoom();
   const myCoopRoomQuery = useMyCoopRoom();
 
+  // Diagnostic wrapper to log run updates and source
+  const setRunWithLog = useCallback((newRun: WordsInfiniteRunState | null, source: string) => {
+    try {
+      console.log("[run update] source:", source, "guessesLen:", newRun?.guesses?.length ?? 0, newRun);
+    } catch (err) {
+      console.log("[run update] source:", source, "(could not serialize run)");
+    }
+    setRun(newRun);
+  }, [setRun]);
+
   // Socket handlers
   const handleGameStarted = useCallback((event: RoomGameStartedEvent) => {
-    setRun(event.run);
+    setRunWithLog(event.run, "handleGameStarted");
     setCurrentTurnPlayerId(event.currentTurnPlayerId);
   }, []);
 
   const handleGuessMade = useCallback((event: RoomGuessMadeEvent) => {
     console.log("📥 Processando evento guess-made:", event);
+    console.log("📥 guess pattern:", event.guess?.pattern, "guessWord:", event.guess?.guessWord);
     setFeedback(`${event.playerName} fez um palpite: ${event.guess.guessWord}`);
 
-    // Atualizar run com o novo guess
-    setRun((prevRun) => {
-      if (!prevRun) return prevRun;
+    // Se não temos run local, refetch do servidor e atualiza o estado completo
+    if (!run && myCoopRoomQuery.refetch) {
+      myCoopRoomQuery.refetch().then((result) => {
+        const serverRun = result.data?.run;
+        if (serverRun) {
+          const serverGuesses = serverRun.guesses?.length ? serverRun.guesses : [];
+          const mergedRun = { ...(serverRun as any), guesses: serverGuesses } as WordsInfiniteRunState;
+          setRunWithLog(mergedRun, "handleGuessMade-refetch");
 
-      const newGuesses = [...(prevRun.guesses || []), event.guess];
+          // rebuild draft from server guesses
+          const draft = buildDraftLettersInfinity(serverGuesses, serverRun.nextWord?.length ?? columns);
+          setDraftLetters(draft);
+          setFixedCols(draft.map((l) => !!l));
+        }
+      }).catch((err) => console.error("Erro ao refetch run após guess-made:", err));
+    } else {
+      // Atualizar run com o novo guess localmente
+      setRun((prevRun) => {
+        if (!prevRun) return prevRun;
 
-      return {
-        ...prevRun,
-        guesses: newGuesses,
-        attemptsUsed: event.attemptNumber,
-      };
-    });
+        const newGuesses = [...(prevRun.guesses || []), event.guess];
+
+        const updated = {
+          ...prevRun,
+          guesses: newGuesses,
+          attemptsUsed: event.attemptNumber,
+        } as WordsInfiniteRunState;
+
+        // Rebuild draft based on updated guesses to keep fixed letters
+        const draft = buildDraftLettersInfinity(newGuesses, columns);
+        setDraftLetters(draft);
+        setFixedCols(draft.map((l) => !!l));
+
+        return updated;
+      });
+    }
 
     setTimeout(() => setFeedback(""), 2000);
   }, []);
@@ -165,8 +200,13 @@ const CoopInfinityGame = () => {
         if (serverRun) {
           const newGuesses = serverRun.guesses?.length ? serverRun.guesses : run?.guesses || [];
           const mergedRun = { ...(serverRun as any), guesses: newGuesses } as WordsInfiniteRunState;
-          setRun(mergedRun);
-          setDraftLetters(buildDraftLetters(serverRun.nextWord?.length ?? columns));
+          setRunWithLog(mergedRun, "handleTurnChanged-refetch");
+
+          // Rebuild draft letters using the infinity logic (preserve fixed/green letters)
+          const serverColumns = (serverRun.nextWord?.length ?? DEFAULT_COLUMNS) as number;
+          const draftFromServer = buildDraftLettersInfinity(newGuesses, serverColumns);
+          setDraftLetters(draftFromServer);
+          setFixedCols(draftFromServer.map((l) => !!l));
           setSelectedCol(0);
         }
       });
@@ -243,7 +283,7 @@ const CoopInfinityGame = () => {
     [navigate, players]
   );
 
-  const socketHandlers = useCoopRoomSocket(roomId ?? null, {
+  const socketEventHandlers = useMemo(() => ({
     onGameStarted: handleGameStarted,
     onGuessMade: handleGuessMade,
     onTurnChanged: handleTurnChanged,
@@ -252,7 +292,18 @@ const CoopInfinityGame = () => {
     onPlayerAbandoned: handlePlayerAbandoned,
     onRematchRequest: handleRematchRequest,
     onRematchResponse: handleRematchResponse,
-  });
+  }), [
+    handleGameStarted,
+    handleGuessMade,
+    handleTurnChanged,
+    handleWordCompleted,
+    handleGameOver,
+    handlePlayerAbandoned,
+    handleRematchRequest,
+    handleRematchResponse,
+  ]);
+
+  const socketHandlers = useCoopRoomSocket(roomId ?? null, socketEventHandlers);
 
   const columns = run?.nextWord?.length ?? DEFAULT_COLUMNS;
   const maxAttempts = run?.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
@@ -416,9 +467,15 @@ const CoopInfinityGame = () => {
         guessWord: word,
       });
 
-      setRun(response);
+      setRunWithLog(response, "handleSubmitGuess-response");
       setCurrentTurnPlayerId(response.currentTurnPlayerId);
-      setDraftLetters(buildDraftLetters(columns));
+
+      // Rebuild draft letters using the latest guesses from server so fixed letters
+      // (green) persist for the next player instead of clearing the row.
+      const responseGuesses = (response.guesses ?? []) as WordsInfiniteGuess[];
+      const draftFromResponse = buildDraftLettersInfinity(responseGuesses, columns);
+      setDraftLetters(draftFromResponse);
+      setFixedCols(draftFromResponse.map((l) => !!l));
       setSelectedCol(0);
 
       if (response.status === "completed") {
