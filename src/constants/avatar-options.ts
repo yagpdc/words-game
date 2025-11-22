@@ -19,7 +19,7 @@ export const FROG_OPTIONS: AvatarOption[] = [
     locked: true,
     unlockRequirement: "Conquiste 30 palavras seguidas no modo infinito para desbloquear!"
   },
-  { id: "frogo-piriguete", label: "Frogo Piriguete", allowAccessories: true },
+  { id: "frogo-piriguete", label: "Frogo Perereguete", allowAccessories: true },
 ];
 
 export const HAT_OPTIONS: { id: string | null; label: string }[] = [

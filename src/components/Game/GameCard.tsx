@@ -98,7 +98,6 @@ const GameCard = ({ type, disabled = false }: GameCardProps) => {
 
       {disabled && (
         <div className="flex items-center gap-2 text-xs text-amber-400 uppercase tracking-wide">
-          <span>🔒</span>
           <span>Em breve</span>
         </div>
       )}

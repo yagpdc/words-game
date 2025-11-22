@@ -15,13 +15,14 @@ import { useAuth } from "../hooks/auth/use-auth.hook";
 import { useUpdateAvatarConfig } from "../hooks/words/use-update-avatar-config";
 import AvatarPreview from "../components/AvatarPreview";
 import { normalizeAvatarConfig } from "../utils/avatar";
+import { MdBlock } from "react-icons/md";
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
 
   const savedConfig = useMemo(
     () => normalizeAvatarConfig(user?.config),
-    [user?.config],
+    [user?.config]
   );
 
   const [frogType, setFrogType] = useState(savedConfig.frogType);
@@ -87,14 +88,14 @@ const Profile = () => {
   }) ?? { id: null, label: "Sem chapéu" };
 
   const selectedBodyOption = (bodyChoices.find(
-    (option) => option.id === body,
+    (option) => option.id === body
   ) as {
     id: string | null;
     label: string;
   }) ?? { id: null, label: "Sem roupa" };
 
   const selectedBackground = backgroundsOptions.find(
-    (option) => option.id === background,
+    (option) => option.id === background
   ) ??
     backgroundsOptions[0] ?? { id: background, label: "Padrão" };
 
@@ -136,8 +137,8 @@ const Profile = () => {
     updateMutation.isError && feedbackMessage
       ? "text-red-400"
       : updateMutation.isSuccess
-        ? "text-emerald-400"
-        : "text-neutral-400";
+      ? "text-emerald-400"
+      : "text-neutral-400";
 
   type SelectionTab = "types" | "bodies" | "hats";
   const [activeTab, setActiveTab] = useState<SelectionTab>("types");
@@ -281,8 +282,8 @@ const Profile = () => {
                         isSelected
                           ? "border-purple-500 shadow-[0_0_10px_rgba(147,51,234,0.5)]"
                           : allowsAccessories
-                            ? "border-neutral-700 hover:border-neutral-500"
-                            : "border-neutral-900"
+                          ? "border-neutral-700 hover:border-neutral-500"
+                          : "border-neutral-900"
                       }`}
                       style={{
                         background: `linear-gradient(180deg, ${gradient[0]}, ${gradient[1]})`,
@@ -328,8 +329,8 @@ const Profile = () => {
                         tabDisabled
                           ? "text-neutral-600 cursor-not-allowed"
                           : isActive
-                            ? "bg-purple-600 text-white shadow-[0_5px_20px_rgba(147,51,234,0.3)] cursor-pointer"
-                            : "text-neutral-400 hover:text-white cursor-pointer"
+                          ? "bg-purple-600 text-white shadow-[0_5px_20px_rgba(147,51,234,0.3)] cursor-pointer"
+                          : "text-neutral-400 hover:text-white cursor-pointer"
                       }`}
                     >
                       {tab.label}
@@ -350,7 +351,9 @@ const Profile = () => {
                         type="button"
                         onClick={() => {
                           if (isLocked) {
-                            setUnlockMessage(option.unlockRequirement || "Item bloqueado");
+                            setUnlockMessage(
+                              option.unlockRequirement || "Item bloqueado"
+                            );
                             return;
                           }
                           setFrogType(option.id);
@@ -364,8 +367,8 @@ const Profile = () => {
                           isLocked
                             ? "border-neutral-800 opacity-40 cursor-pointer hover:opacity-60"
                             : isSelected
-                              ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
-                              : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
+                            ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
+                            : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
                         }`}
                         title={option.label}
                       >
@@ -378,7 +381,9 @@ const Profile = () => {
                           />
                           {isLocked && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded">
-                              <span className="text-2xl">🔒</span>
+                              <span className="text-2xl">
+                                <MdBlock />
+                              </span> 
                             </div>
                           )}
                         </div>
@@ -391,82 +396,82 @@ const Profile = () => {
                     );
                   })
                 : activeTab === "bodies"
-                  ? bodyChoices.map((option) => {
-                      const isSelected = option.id === body;
-                      const disabled = !allowsAccessories;
-                      return (
-                        <button
-                          key={option.id ?? "body-none"}
-                          type="button"
-                          onClick={() => {
-                            if (disabled) return;
-                            setBody(option.id);
-                          }}
-                          disabled={disabled}
-                          className={`flex flex-col items-center rounded-2xl border p-2 transition ${
-                            disabled
-                              ? "border-neutral-900 text-neutral-600 cursor-not-allowed"
-                              : isSelected
-                                ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
-                                : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
-                          }`}
-                          title={option.label}
-                        >
-                          <div className="flex h-16 w-full items-center justify-center">
-                            {option.id ? (
-                              <img
-                                src={getBodyAsset(option.id)}
-                                alt={option.label}
-                                className="max-h-full max-w-full object-contain"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-neutral-700 text-[8px] uppercase tracking-wide text-neutral-400">
-                                Sem roupa
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })
-                  : hatChoices.map((option) => {
-                      const isSelected = option.id === hat;
-                      const disabled = !allowsAccessories;
-                      return (
-                        <button
-                          key={option.id ?? "hat-none"}
-                          type="button"
-                          onClick={() => {
-                            if (disabled) return;
-                            setHat(option.id);
-                          }}
-                          disabled={disabled}
-                          className={`flex flex-col items-center rounded-2xl border p-2 transition ${
-                            disabled
-                              ? "border-neutral-900 text-neutral-600 cursor-not-allowed"
-                              : isSelected
-                                ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
-                                : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
-                          }`}
-                          title={option.label}
-                        >
-                          <div className="flex h-14 w-full items-center justify-center">
-                            {option.id ? (
-                              <img
-                                src={getHatAsset(option.id)}
-                                alt={option.label}
-                                className="max-h-full max-w-full object-contain"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-neutral-700 text-[8px] uppercase tracking-wide text-neutral-400">
-                                Sem chapéu
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
+                ? bodyChoices.map((option) => {
+                    const isSelected = option.id === body;
+                    const disabled = !allowsAccessories;
+                    return (
+                      <button
+                        key={option.id ?? "body-none"}
+                        type="button"
+                        onClick={() => {
+                          if (disabled) return;
+                          setBody(option.id);
+                        }}
+                        disabled={disabled}
+                        className={`flex flex-col items-center rounded-2xl border p-2 transition ${
+                          disabled
+                            ? "border-neutral-900 text-neutral-600 cursor-not-allowed"
+                            : isSelected
+                            ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
+                            : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
+                        }`}
+                        title={option.label}
+                      >
+                        <div className="flex h-16 w-full items-center justify-center">
+                          {option.id ? (
+                            <img
+                              src={getBodyAsset(option.id)}
+                              alt={option.label}
+                              className="max-h-full max-w-full object-contain"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-neutral-700 text-[8px] uppercase tracking-wide text-neutral-400">
+                              Sem roupa
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })
+                : hatChoices.map((option) => {
+                    const isSelected = option.id === hat;
+                    const disabled = !allowsAccessories;
+                    return (
+                      <button
+                        key={option.id ?? "hat-none"}
+                        type="button"
+                        onClick={() => {
+                          if (disabled) return;
+                          setHat(option.id);
+                        }}
+                        disabled={disabled}
+                        className={`flex flex-col items-center rounded-2xl border p-2 transition ${
+                          disabled
+                            ? "border-neutral-900 text-neutral-600 cursor-not-allowed"
+                            : isSelected
+                            ? "border-purple-500 bg-purple-500/10 shadow-[0_10px_30px_rgba(147,51,234,0.25)] cursor-pointer"
+                            : "border-neutral-800 hover:border-neutral-600 cursor-pointer"
+                        }`}
+                        title={option.label}
+                      >
+                        <div className="flex h-14 w-full items-center justify-center">
+                          {option.id ? (
+                            <img
+                              src={getHatAsset(option.id)}
+                              alt={option.label}
+                              className="max-h-full max-w-full object-contain"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-neutral-700 text-[8px] uppercase tracking-wide text-neutral-400">
+                              Sem chapéu
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
             </div>
           </section>
         </div>
@@ -480,10 +485,14 @@ const Profile = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <div className="text-3xl">🔒</div>
+              
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-white mb-2">Item Bloqueado</h3>
-                <p className="text-neutral-300 text-sm leading-relaxed">{unlockMessage}</p>
+                <h3 className="text-lg font-bold text-white mb-2">
+                  Item Bloqueado
+                </h3>
+                <p className="text-neutral-300 text-sm leading-relaxed">
+                  {unlockMessage}
+                </p>
               </div>
             </div>
             <button
