@@ -1,3 +1,7 @@
+/* Animação para girar ícones tipo spinner */
+.icon-spin {
+  animation: coop-spin 0.8s linear infinite;
+}
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -38,6 +42,23 @@
   margin: 0.25rem 0;
 }
 
+/* Spinner animation for CoopGameOverModal */
+/* Spinner loading clássico */
+.coop-spinner {
+  display: inline-block;
+  width: 2em;
+  height: 2em;
+  border: 3px solid rgba(123,179,227,0.25);
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: coop-spin 0.8s linear infinite;
+  box-sizing: border-box;
+}
+@keyframes coop-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+  
 .modal-content button:hover {
   opacity: 0.9;
   transform: translateY(-1px);

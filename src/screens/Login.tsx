@@ -108,7 +108,10 @@ const Login = () => {
 
           <button
             type="submit"
-            className="rounded bg-purple-800 py-2 font-semibold text-white cursor-pointer transition hover:bg-purple-900 disabled:cursor-not-allowed disabled:bg-blue-900"
+            className={`rounded py-2 font-semibold text-white cursor-pointer transition
+              bg-green-700 hover:bg-green-800
+              disabled:cursor-not-allowed disabled:bg-green-900
+              ${isPending ? 'skeleton-effect' : ''}`}
             disabled={isPending}
           >
             {isPending ? "Entrando..." : "Entrar"}

@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+/* Skeleton shine effect for loading button */
+.skeleton-effect {
+	position: relative;
+	overflow: hidden;
+}
+.skeleton-effect::after {
+	content: "";
+	position: absolute;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background: linear-gradient(90deg, rgba(32,64,32,0.1) 0%, rgba(32,128,32,0.25) 50%, rgba(32,64,32,0.1) 100%);
+	animation: skeleton-shine 1.2s infinite linear;
+	z-index: 1;
+}
+@keyframes skeleton-shine {
+	0% { background-position: -200px 0; }
+	100% { background-position: 200px 0; }
+}

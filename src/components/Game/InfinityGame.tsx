@@ -828,7 +828,7 @@ const InfinityGame = () => {
                 type="button"
                 onClick={handleAbandonRun}
                 disabled={abandonMutation.isPending}
-                className="rounded-md border border-rose-500/50 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400/80 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border cursor-pointer border-rose-500/50 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400/80 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {abandonMutation.isPending ? "Abandonando..." : "Abandonar run"}
               </button>
@@ -837,7 +837,7 @@ const InfinityGame = () => {
                 type="button"
                 onClick={handleStartRun}
                 disabled={startRunMutation.isPending}
-                className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md bg-purple-600  cursor-pointer px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {startRunMutation.isPending
                   ? "Reiniciando..."
@@ -999,7 +999,7 @@ const InfinityGame = () => {
               type="button"
               onClick={handleStartRun}
               disabled={startRunMutation.isPending}
-              className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-md bg-purple-600 px-4 py-2 cursor-pointer  text-sm font-semibold text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {startRunMutation.isPending
                 ? "Reiniciando..."
@@ -1122,7 +1122,7 @@ const InfinityGame = () => {
               <button
                 type="button"
                 onClick={closeResultModal}
-                className="flex-1 rounded-md border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-slate-400"
+                className="flex-1 rounded-md cursor-pointer  border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-slate-400"
               >
                 Fechar
               </button>
@@ -1133,7 +1133,7 @@ const InfinityGame = () => {
                   handleStartRun();
                 }}
                 disabled={startRunMutation.isPending}
-                className="flex-1 rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex-1 rounded-md bg-purple-600 cursor-pointer  px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {startRunMutation.isPending
                   ? "Reiniciando..."

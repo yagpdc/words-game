@@ -12,6 +12,7 @@ import type {
   RoomPlayerLeftEvent,
 } from "../types/words";
 import AvatarPreview from "../components/AvatarPreview";
+import { CgSpinner } from "react-icons/cg";
 
 const CoopLobby = () => {
   const navigate = useNavigate();
@@ -236,7 +237,6 @@ const CoopLobby = () => {
             disabled={createRoomMutation.isPending}
             className="rounded-2xl border border-neutral-800 bg-neutral-900/80 p-8 text-left transition-all hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(147,51,234,0.3)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            <div className="text-4xl mb-4">🎮</div>
             <h2 className="text-2xl font-bold text-white mb-2">Criar Sala</h2>
             <p className="text-neutral-400 text-sm">
               {createRoomMutation.isPending
@@ -246,7 +246,6 @@ const CoopLobby = () => {
           </button>
 
           <div className="rounded-2xl border border-neutral-800 bg-neutral-900/80 p-8">
-            <div className="text-4xl mb-4">🔑</div>
             <h2 className="text-2xl font-bold text-white mb-2">Entrar em Sala</h2>
             <p className="text-neutral-400 text-sm mb-4">
               Digite o ID da sala para entrar
@@ -345,7 +344,7 @@ const CoopLobby = () => {
                 className="inline-flex items-center gap-2 rounded-lg bg-neutral-800 border border-neutral-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-700 cursor-pointer"
                 title="Copiar ID"
               >
-                📋 Copiar ID
+                Copiar ID
               </button>
               <button
                 onClick={handleCopyRoomLink}
@@ -406,9 +405,8 @@ const CoopLobby = () => {
               {!hasPartner && (
                 <div className="rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800/20 p-6 flex flex-col items-center justify-center min-h-[100px] gap-3">
                   <div className="relative">
-                    <div className="text-4xl opacity-30">👤</div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-2xl animate-pulse">⏳</div>
+                      <div className="text-2xl"><CgSpinner className="icon-spin" /></div>
                     </div>
                   </div>
                   <p className="text-neutral-500 text-sm text-center font-semibold">
@@ -421,7 +419,7 @@ const CoopLobby = () => {
         </div>
       </div>
 
-      {!hasPartner && (
+      {/* {!hasPartner && (
         <div className="rounded-lg bg-purple-500/10 border border-purple-500/30 p-5 mb-6">
           <div className="flex items-start gap-3">
             <div className="text-2xl">💡</div>
@@ -437,7 +435,7 @@ const CoopLobby = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {hasPartner && (
         <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-5 mb-6">
