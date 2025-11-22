@@ -99,6 +99,21 @@ const Login = () => {
       ref={sectionRef}
       className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#1f1f1f] text-white"
     >
+      {/* Maintenance banner (standard site-style) */}
+      <div className="fixed inset-x-0 top-0 flex justify-center z-50 pointer-events-none">
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-auto mx-4 mt-4 max-w-3xl w-[calc(100%-2rem)] bg-yellow-50 border-l-4 border-amber-500 text-amber-900 px-4 py-3 rounded shadow-md opacity-75"
+        >
+          <div className="flex items-start gap-3">
+            <div>
+              <div className="font-semibold">Manutenção em andamento</div>
+              <div className="text-sm">Estamos realizando melhorias no sistema e voltaremos em breve. Agradecemos sua paciência.</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         {letters.map((letter) => {
           let isOverLogo = false;
@@ -252,6 +267,15 @@ const Login = () => {
             </>
           )}
         </form>
+      </div>
+      {/* Small signature in bottom-left corner */}
+      <div
+        aria-hidden="true"
+        className="fixed left-3 bottom-3 z-50 pointer-events-none select-none"
+      >
+        <div className="text-xs text-neutral-500">
+          Feito com carinho por <span className="font-semibold text-neutral-200">Yago Santana</span>... 🐸
+        </div>
       </div>
     </section>
   );
