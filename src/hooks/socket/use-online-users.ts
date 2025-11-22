@@ -85,7 +85,7 @@ export const useOnlineUsers = (): UseOnlineUsersResult => {
     });
 
     socket.on("users:online", (payload: any) => {
-      console.log("📥 Socket: users:online payload:", payload);
+      // console.log("📥 Socket: users:online payload:", payload);
 
       // Normalize ids array
       let ids: string[] = [];

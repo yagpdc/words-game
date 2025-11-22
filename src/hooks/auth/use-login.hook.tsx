@@ -61,6 +61,9 @@ export const useLogin = () => {
     isPending: mutation.isPending,
     isError: mutation.isError,
     isSuccess: mutation.isSuccess,
+    errorMessage:
+      (mutation.error as any)?.response?.data?.error || (mutation.error as any)?.response?.data?.message || (mutation.error as any)?.message || null,
+    errorStatus: (mutation.error as any)?.response?.status || null,
     handleSubmit,
     handleUsernameChange,
     handlePasswordChange,
