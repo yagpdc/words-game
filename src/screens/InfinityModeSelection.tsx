@@ -46,7 +46,6 @@ const InfinityModeCard = ({ mode, disabled = false }: InfinityModeCardProps) => 
 
       {disabled && (
         <div className="flex items-center gap-2 text-xs text-amber-400 uppercase tracking-wide">
-          <span>🔒</span>
           <span>Em breve</span>
         </div>
       )}
@@ -113,7 +112,7 @@ const InfinityModeSelection = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <InfinityModeCard mode="solo" />
-        <InfinityModeCard mode="coop" />
+        <InfinityModeCard mode="coop" disabled />
         <InfinityModeCard mode="versus" disabled />
       </div>
     </div>
