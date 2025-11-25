@@ -5,8 +5,8 @@ import Game from "./screens/Game";
 import GameDaily from "./screens/GameDaily";
 import GameInfinity from "./screens/GameInfinity";
 import InfinityModeSelection from "./screens/InfinityModeSelection";
-import CoopLobby from "./screens/CoopLobby";
-import CoopInfinityGame from "./screens/CoopInfinityGame";
+// import CoopLobby from "./screens/CoopLobby";
+// import CoopInfinityGame from "./screens/CoopInfinityGame";
 import Leaderboard from "./screens/Leaderboard";
 import Login from "./screens/Login";
 import Profile from "./screens/Profile";
@@ -73,7 +73,7 @@ const Router = () => {
           )
         }
       />
-      <Route
+      {/* <Route
         path="/game/infinity/coop/lobby"
         element={
           isAuthenticated ? (
@@ -96,7 +96,7 @@ const Router = () => {
             <Navigate to="/" replace />
           )
         }
-      />
+      /> */}
       <Route
         path="/game/daily"
         element={
