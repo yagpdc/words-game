@@ -20,7 +20,7 @@ export const useWordsRankingQuery = (options?: UseWordsRankingOptions) => {
       return data;
     },
     staleTime: 30_000,
-    refetchInterval:2000,
+    refetchInterval:10000,
     ...options,
   });
 };

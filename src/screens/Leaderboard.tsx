@@ -18,8 +18,8 @@ const Leaderboard = () => {
   const { data: ranking, isLoading, error, refetch } = useWordsRankingQuery();
 
   const currentUserId = user?.id;
-  const { onlineUsers, isConnected } = useOnlineUsers();
-  const onlineUsersSet = useMemo(() => new Set(onlineUsers), [onlineUsers]);
+  // const { onlineUsers, isConnected } = useOnlineUsers();
+  // const onlineUsersSet = useMemo(() => new Set(onlineUsers), [onlineUsers]);
 
   useEffect(() => {
     if (!scrollContainerRef.current || !ranking || ranking.length === 0) {
@@ -126,9 +126,9 @@ const Leaderboard = () => {
               const avatarConfig = normalizeAvatarConfig({
                 avatar: item.avatar ?? {},
               });
-              const isOnline = isCurrent
-                ? isConnected
-                : item.isOnline === true || onlineUsersSet.has(item.id);
+              // const isOnline = isCurrent
+              //   ? isConnected
+              //   : item.isOnline === true || onlineUsersSet.has(item.id);
 
               return (
                 <tr
@@ -150,14 +150,14 @@ const Leaderboard = () => {
                         className="border border-neutral-800"
                       />
                       <div className="flex items-center gap-2 truncate">
-                        <span
+                        {/* <span
                           className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${
                             isOnline
                               ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
                               : "bg-neutral-600"
                           }`}
                           title={isOnline ? "Online" : "Offline"}
-                        />
+                        /> */}
                         <span className="truncate">{item.name}</span>
                         {index === 0 ? (
                           <FaCrown className="text-yellow-500 text-xs" />
