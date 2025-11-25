@@ -100,7 +100,7 @@ const Login = () => {
       className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#1f1f1f] text-white"
     >
       {/* Maintenance banner (standard site-style) */}
-      <div className="fixed inset-x-0 top-0 flex justify-center z-50 pointer-events-none">
+      {/* <div className="fixed inset-x-0 top-0 flex justify-center z-50 pointer-events-none">
         <div
           role="status"
           aria-live="polite"
@@ -113,7 +113,7 @@ const Login = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         {letters.map((letter) => {
           let isOverLogo = false;
