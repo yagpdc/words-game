@@ -8,7 +8,6 @@ import { useWordsRankingQuery } from "../hooks/words/use-words-ranking";
 import AvatarPreview from "../components/AvatarPreview";
 import { normalizeAvatarConfig } from "../utils/avatar";
 import { FaCrown } from "react-icons/fa";
-import { useOnlineUsers } from "../hooks/socket/use-online-users";
 
 const Leaderboard = () => {
   const { user, logout } = useAuth();
