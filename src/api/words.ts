@@ -1,6 +1,6 @@
 const LOCAL_API_URL = "http://localhost:8000";
 const PROD_API_URL =
-  "https://yago-vm-web-test-ffhjembcd5h9eebv.brazilsouth-01.azurewebsites.net";
+  "http://froggo.us-east-2.elasticbeanstalk.com";
 
 const API_ORIGIN =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_WORDS_API_URL) ||
