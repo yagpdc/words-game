@@ -1,6 +1,7 @@
 import { useFloatingLetters } from "../hooks/use-floating-letters";
 import { useLogin } from "../hooks/auth/use-login.hook";
 import logo from "../assets/froggoLogo.png";
+import spinningFrog from "../assets/spinning-frog.gif";
 import React, { useRef, useState, useEffect } from "react";
 import { WORDS_API_ORIGIN } from "../api/words";
 const Login = () => {
@@ -159,7 +160,15 @@ const Login = () => {
         })}
       </div>
       <div className="flex flex-col items-center justify-center ">
-        <img ref={logoRef} src={logo} alt="Froggo Logo" className="mx-auto mb-6 h-44 w-auto" />
+        <div className="relative mx-auto mb-6">
+          <img
+            src={spinningFrog}
+            alt="Sapo girando"
+            aria-hidden="true"
+            className="absolute top-8 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none"
+          />
+          <img ref={logoRef} src={logo} alt="Froggo Logo" className="mx-auto h-44 w-auto" />
+        </div>
         <form
           ref={cardRef}
           className="relative z-10 flex flex-col gap-4 rounded-lg border border-neutral-700 p-6 shadow-lg h-full min-w-[400px] w-[20vw]"
