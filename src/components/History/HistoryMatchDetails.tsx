@@ -99,7 +99,7 @@ const HistoryMatchDetails = ({
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-4 top-4 rounded-full border border-neutral-700 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-400 transition hover:border-neutral-500 hover:text-white cursor-pointer"
+        className="absolute right-4 cursor-pointer top-4 rounded-full border border-neutral-700 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-400 transition hover:border-neutral-500 hover:text-white cursor-pointer"
       >
         Fechar
       </button>

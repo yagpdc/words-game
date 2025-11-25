@@ -92,7 +92,7 @@ const buildDraftLettersInfinity = (guesses: WordsInfiniteGuess[], columns: numbe
     }
   });
   // Log para debug: quais letras estão fixas
-  console.log("[Infinity] Letras fixas (verdes) por coluna:", draft);
+  // console.log("[Infinity] Letras fixas (verdes) por coluna:", draft);
   return draft;
 };
 
@@ -130,9 +130,9 @@ const CoopInfinityGame = () => {
   // Diagnostic wrapper to log run updates and source
   const setRunWithLog = useCallback((newRun: WordsInfiniteRunState | null, source: string) => {
     try {
-      console.log("[run update] source:", source, "guessesLen:", newRun?.guesses?.length ?? 0, newRun);
+      // console.log("[run update] source:", source, "guessesLen:", newRun?.guesses?.length ?? 0, newRun);
     } catch (err) {
-      console.log("[run update] source:", source, "(could not serialize run)");
+      // console.log("[run update] source:", source, "(could not serialize run)");
     }
     setRun(newRun);
   }, [setRun]);
@@ -144,8 +144,8 @@ const CoopInfinityGame = () => {
   }, []);
 
   const handleGuessMade = useCallback((event: RoomGuessMadeEvent) => {
-    console.log("📥 Processando evento guess-made:", event);
-    console.log("📥 guess pattern:", event.guess?.pattern, "guessWord:", event.guess?.guessWord);
+    // console.log("📥 Processando evento guess-made:", event);
+    // console.log("📥 guess pattern:", event.guess?.pattern, "guessWord:", event.guess?.guessWord);
     setFeedback(`${event.playerName} fez um palpite: ${event.guess.guessWord}`);
 
     // Se não temos run local, refetch do servidor e atualiza o estado completo
@@ -189,8 +189,8 @@ const CoopInfinityGame = () => {
   }, []);
 
   const handleTurnChanged = useCallback((event: RoomTurnChangedEvent) => {
-    console.log("📥 Processando evento turn-changed:", event);
-    console.log("🔄 Mudando turno para:", event.currentTurnPlayerId, event.currentTurnPlayerName);
+    // console.log("📥 Processando evento turn-changed:", event);
+    // console.log("🔄 Mudando turno para:", event.currentTurnPlayerId, event.currentTurnPlayerName);
     setCurrentTurnPlayerId(event.currentTurnPlayerId);
 
     // Refetch do estado do run
@@ -214,7 +214,7 @@ const CoopInfinityGame = () => {
   }, [myCoopRoomQuery, run]);
 
   const handleWordCompleted = useCallback((event: RoomWordCompletedEvent) => {
-    console.log("📥 Processando evento word-completed:", event);
+    // console.log("📥 Processando evento word-completed:", event);
     setFeedback(`Palavra completada! Pontuação: ${event.currentScore}`);
 
     // Atualizar run com nova pontuação e próxima palavra
@@ -252,7 +252,7 @@ const CoopInfinityGame = () => {
   );
 
   const handleRematchRequest = useCallback((event: RoomRematchRequestEvent) => {
-    console.log("📥 Recebendo pedido de rematch:", event);
+    // console.log("📥 Recebendo pedido de rematch:", event);
     // Só mostrar modal se o pedido não for meu
     if (event.requesterId !== user?.id) {
       setRematchRequest(event);
@@ -261,7 +261,7 @@ const CoopInfinityGame = () => {
 
   const handleRematchResponse = useCallback(
     (event: RoomRematchResponseEvent) => {
-      console.log("📥 Resposta de rematch:", event);
+      // console.log("📥 Resposta de rematch:", event);
 
       if (!event.accepted) {
         setFeedback(`${event.responderName} recusou a revanche`);
@@ -271,7 +271,7 @@ const CoopInfinityGame = () => {
 
       if (event.newRoomId) {
         // Ambos aceitaram - redirecionar para nova sala
-        console.log("✅ Nova sala criada:", event.newRoomId);
+        // console.log("✅ Nova sala criada:", event.newRoomId);
         navigate(`/game/infinity/coop/${event.newRoomId}`, {
           state: { players },
         });
@@ -314,34 +314,34 @@ const CoopInfinityGame = () => {
   const isInputLocked = !isMyTurn || !isGameActive || guessMutation.isPending;
 
   // Log detalhado quando isMyTurn muda
-  useEffect(() => {
-    console.log("⚡ isMyTurn mudou para:", isMyTurn, {
-      currentTurnPlayerId,
-      myUserId: user?.id,
-      comparison: `${currentTurnPlayerId} === ${user?.id}`,
-    });
-  }, [isMyTurn, currentTurnPlayerId, user?.id]);
+  // useEffect(() => {
+  //   console.log("⚡ isMyTurn mudou para:", isMyTurn, {
+  //     currentTurnPlayerId,
+  //     myUserId: user?.id,
+  //     comparison: `${currentTurnPlayerId} === ${user?.id}`,
+  //   });
+  // }, [isMyTurn, currentTurnPlayerId, user?.id]);
 
   // Debug: Mostrar info de turno
-  useEffect(() => {
-    console.log("🎮 Estado do jogo:", {
-      currentTurnPlayerId,
-      myUserId: user?.id,
-      myUsername: user?.name,
-      isMyTurn,
-      isGameActive,
-      isInputLocked,
-      runStatus: run?.status,
-      attemptsUsed: run?.attemptsUsed,
-      currentGuessCount,
-      guessMutationPending: guessMutation.isPending,
-      breakdown: {
-        notMyTurn: !isMyTurn,
-        notActive: !isGameActive,
-        mutationPending: guessMutation.isPending,
-      }
-    });
-  }, [currentTurnPlayerId, user?.id, user?.name, isMyTurn, isGameActive, isInputLocked, run?.status, run?.attemptsUsed, currentGuessCount, guessMutation.isPending]);
+  // useEffect(() => {
+  //   console.log("🎮 Estado do jogo:", {
+  //     currentTurnPlayerId,
+  //     myUserId: user?.id,
+  //     myUsername: user?.name,
+  //     isMyTurn,
+  //     isGameActive,
+  //     isInputLocked,
+  //     runStatus: run?.status,
+  //     attemptsUsed: run?.attemptsUsed,
+  //     currentGuessCount,
+  //     guessMutationPending: guessMutation.isPending,
+  //     breakdown: {
+  //       notMyTurn: !isMyTurn,
+  //       notActive: !isGameActive,
+  //       mutationPending: guessMutation.isPending,
+  //     }
+  //   });
+  // }, [currentTurnPlayerId, user?.id, user?.name, isMyTurn, isGameActive, isInputLocked, run?.status, run?.attemptsUsed, currentGuessCount, guessMutation.isPending]);
 
   // Atualiza draftLetters ao mudar run ou guesses
   useEffect(() => {
@@ -409,24 +409,24 @@ const CoopInfinityGame = () => {
     const word = draftLetters.join("").toUpperCase();
 
     // Debug detalhado
-    console.log("DEBUG Submit:", {
-      draftLetters,
-      draftLettersLength: draftLetters.length,
-      word,
-      wordLength: word.length,
-      columns,
-      hasEmptyLetters: draftLetters.some(letter => !letter),
-      isInputLocked,
-      roomId,
-      eachLetter: draftLetters.map((l, i) => ({
-        index: i,
-        letter: l,
-        isEmpty: !l,
-        length: l.length,
-        charCode: l ? l.charCodeAt(0) : null
-      })),
-      emptyPositions: draftLetters.map((l, i) => !l ? i : null).filter(i => i !== null)
-    });
+    // console.log("DEBUG Submit:", {
+    //   draftLetters,
+    //   draftLettersLength: draftLetters.length,
+    //   word,
+    //   wordLength: word.length,
+    //   columns,
+    //   hasEmptyLetters: draftLetters.some(letter => !letter),
+    //   isInputLocked,
+    //   roomId,
+    //   eachLetter: draftLetters.map((l, i) => ({
+    //     index: i,
+    //     letter: l,
+    //     isEmpty: !l,
+    //     length: l.length,
+    //     charCode: l ? l.charCodeAt(0) : null
+    //   })),
+    //   emptyPositions: draftLetters.map((l, i) => !l ? i : null).filter(i => i !== null)
+    // });
 
     // Verifica se todas as letras foram preenchidas
     // Problema: draftLetters pode ter tamanho diferente de columns
@@ -444,7 +444,7 @@ const CoopInfinityGame = () => {
       const emptyPositions = draftLetters
         .map((l, i) => !l ? i + 1 : null)
         .filter(i => i !== null);
-      console.log("Palavra incompleta. Posições vazias:", emptyPositions);
+      // console.log("Palavra incompleta. Posições vazias:", emptyPositions);
       setFeedback(`Complete a palavra (falta posição ${emptyPositions.join(', ')})`);
       setIsRowShaking(true);
       setTimeout(() => setIsRowShaking(false), 500);
@@ -452,7 +452,7 @@ const CoopInfinityGame = () => {
     }
 
     if (word.length !== columns) {
-      console.log("Palavra com tamanho errado:", { wordLength: word.length, columns });
+      // console.log("Palavra com tamanho errado:", { wordLength: word.length, columns });
       setFeedback("Complete a palavra");
       setIsRowShaking(true);
       setTimeout(() => setIsRowShaking(false), 500);
@@ -545,7 +545,7 @@ const CoopInfinityGame = () => {
       } else if (key.length === 1 && /^[A-Z]$/i.test(key)) {
         // Ensure selectedCol is editable
         if (selectedCol >= columns) {
-          console.log("⚠️ Já preencheu todas as letras");
+          // console.log("⚠️ Já preencheu todas as letras");
           return;
         }
 
@@ -553,19 +553,19 @@ const CoopInfinityGame = () => {
         if (fixedCols[col]) {
           const next = findNextEditable(col + 1);
           if (next === -1) {
-            console.log("⚠️ Não há colunas editáveis");
+            // console.log("⚠️ Não há colunas editáveis");
             return;
           }
           col = next;
           setSelectedCol(next);
         }
 
-        console.log(`✏️ Digitando "${key}" na posição ${col}`);
+        // console.log(`✏️ Digitando "${key}" na posição ${col}`);
 
         setDraftLetters((prev) => {
           const newLetters = [...prev];
           newLetters[col] = key.toUpperCase();
-          console.log("📝 Draft atualizado:", newLetters);
+          // console.log("📝 Draft atualizado:", newLetters);
           return newLetters;
         });
 

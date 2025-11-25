@@ -38,15 +38,15 @@ export const useCoopRoomSocket = (
 
   const joinRoom = useCallback(() => {
     if (socketRef.current && roomId && !hasJoinedRoomRef.current) {
-      console.log("🚪 Socket: Fazendo join na sala", roomId);
+      // console.log("🚪 Socket: Fazendo join na sala", roomId);
       socketRef.current.emit("room:join", { roomId });
       hasJoinedRoomRef.current = true;
     } else {
-      console.log("⚠️ Socket: Não pode fazer join -", {
-        hasSocket: !!socketRef.current,
-        roomId,
-        alreadyJoined: hasJoinedRoomRef.current,
-      });
+      // console.log("⚠️ Socket: Não pode fazer join -", {
+      //   hasSocket: !!socketRef.current,
+      //   roomId,
+      //   alreadyJoined: hasJoinedRoomRef.current,
+      // });
     }
   }, [roomId]);
 
@@ -86,20 +86,20 @@ export const useCoopRoomSocket = (
       },
     });
 
-    console.log("🔌 Socket: Conectando ao servidor", WORDS_SOCKET_URL, "para sala", roomId, "userId:", user.id);
+      // console.log("🔌 Socket: Conectando ao servidor", WORDS_SOCKET_URL, "para sala", roomId, "userId:", user.id);
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("✅ Socket: Conectado! ID:", socket.id);
+      // console.log("✅ Socket: Conectado! ID:", socket.id);
       joinRoom();
     });
 
     socket.on("room:joined", (data: { roomId: string; socketId: string }) => {
-      console.log("✅ Socket: Confirmação de entrada na sala", data);
+      // console.log("✅ Socket: Confirmação de entrada na sala", data);
     });
 
     socket.on("disconnect", (reason) => {
-      console.log("❌ Socket: Desconectado. Razão:", reason);
+      // console.log("❌ Socket: Desconectado. Razão:", reason);
       hasJoinedRoomRef.current = false;
     });
 
@@ -113,37 +113,37 @@ export const useCoopRoomSocket = (
 
     // Room events
     socket.on("room:player-joined", (event: RoomPlayerJoinedEvent) => {
-      console.log("📥 Socket: player-joined", event);
+      // console.log("📥 Socket: player-joined", event);
       handlers.onPlayerJoined?.(event);
     });
 
     socket.on("room:game-started", (event: RoomGameStartedEvent) => {
-      console.log("📥 Socket: game-started", event);
+      // console.log("📥 Socket: game-started", event);
       handlers.onGameStarted?.(event);
     });
 
     socket.on("room:guess-made", (event: RoomGuessMadeEvent) => {
-      console.log("📥 Socket: guess-made", event);
+      // console.log("📥 Socket: guess-made", event);
       handlers.onGuessMade?.(event);
     });
 
     socket.on("room:turn-changed", (event: RoomTurnChangedEvent) => {
-      console.log("📥 Socket: turn-changed", event);
+      // console.log("📥 Socket: turn-changed", event);
       handlers.onTurnChanged?.(event);
     });
 
     socket.on("room:word-completed", (event: RoomWordCompletedEvent) => {
-      console.log("📥 Socket: word-completed", event);
+      // console.log("📥 Socket: word-completed", event);
       handlers.onWordCompleted?.(event);
     });
 
     socket.on("room:game-over", (event: RoomGameOverEvent) => {
-      console.log("📥 Socket: game-over", event);
+      // console.log("📥 Socket: game-over", event);
       handlers.onGameOver?.(event);
     });
 
     socket.on("room:player-abandoned", (event: RoomPlayerAbandonedEvent) => {
-      console.log("📥 Socket: player-abandoned", event);
+      // console.log("📥 Socket: player-abandoned", event);
       handlers.onPlayerAbandoned?.(event);
     });
 
@@ -152,12 +152,12 @@ export const useCoopRoomSocket = (
     });
 
     socket.on("room:rematch-request", (event: RoomRematchRequestEvent) => {
-      console.log("🔄 Socket: rematch-request", event);
+      // console.log("🔄 Socket: rematch-request", event);
       handlers.onRematchRequest?.(event);
     });
 
     socket.on("room:rematch-response", (event: RoomRematchResponseEvent) => {
-      console.log("🔄 Socket: rematch-response", event);
+      // console.log("🔄 Socket: rematch-response", event);
       handlers.onRematchResponse?.(event);
     });
 
@@ -172,14 +172,14 @@ export const useCoopRoomSocket = (
 
   const requestRematch = useCallback(() => {
     if (socketRef.current && roomId) {
-      console.log("🔄 Enviando pedido de rematch para sala", roomId);
+      // console.log("🔄 Enviando pedido de rematch para sala", roomId);
       socketRef.current.emit("room:rematch-request", { roomId });
     }
   }, [roomId]);
 
   const respondToRematch = useCallback((accepted: boolean) => {
     if (socketRef.current && roomId) {
-      console.log(`${accepted ? '✅' : '❌'} Respondendo rematch:`, accepted);
+      // console.log(`${accepted ? '✅' : '❌'} Respondendo rematch:`, accepted);
       socketRef.current.emit("room:rematch-response", { roomId, accepted });
     }
   }, [roomId]);
